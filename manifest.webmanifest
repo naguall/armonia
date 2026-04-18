@@ -1,0 +1,53 @@
+{
+  "name": "ARMONÍA — Aprende armonía a profundidad",
+  "short_name": "ARMONÍA",
+  "description": "Aprende armonía, arreglos y composición a nivel profesional — en jazz, clásico, pop, latino y cine. Con tutor IA, ear training y análisis de canciones.",
+  "id": "/armonia/",
+  "start_url": "./APP_ARMONIA_Prototipo.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui", "browser"],
+  "orientation": "any",
+  "background_color": "#0E1220",
+  "theme_color": "#2E5C8A",
+  "lang": "es",
+  "dir": "ltr",
+  "categories": ["education", "music", "productivity"],
+  "icons": [
+    { "src": "icon-192.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon-192.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "maskable" },
+    { "src": "icon-512.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon-512.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Lección de hoy",
+      "short_name": "Lección",
+      "description": "Continúa tu lección actual",
+      "url": "./APP_ARMONIA_Prototipo.html#lesson",
+      "icons": [{ "src": "icon-192.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Tutor IA",
+      "short_name": "Tutor",
+      "description": "Pregúntale al tutor de armonía",
+      "url": "./APP_ARMONIA_Prototipo.html#tutor",
+      "icons": [{ "src": "icon-192.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Ear training",
+      "short_name": "Oído",
+      "description": "Entrena tu oído",
+      "url": "./APP_ARMONIA_Prototipo.html#ear",
+      "icons": [{ "src": "icon-192.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Mapa de maestría",
+      "short_name": "Maestría",
+      "description": "Tu árbol de habilidades",
+      "url": "./APP_ARMONIA_Prototipo.html#mastery",
+      "icons": [{ "src": "icon-192.svg", "sizes": "192x192" }]
+    }
+  ],
+  "prefer_related_applications": false
+}
