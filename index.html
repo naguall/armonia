@@ -1028,6 +1028,26 @@
 <!-- Sidebar mobile backdrop -->
 <div id="sidebarBackdrop" class="hidden fixed inset-0 z-20 md:hidden" style="background:rgba(0,0,0,.6);backdrop-filter:blur(2px)"></div>
 
+<!-- ============ FLOATING INSTRUMENT WIDGET ============ -->
+<button id="fabInstrument" onclick="toggleFab()" title="Piano / Guitarra" aria-label="instrumento"
+  style="position:fixed;right:18px;bottom:18px;width:56px;height:56px;border-radius:28px;background:linear-gradient(135deg,#C77B2A,#E29A4F);border:0;color:#fff;font-size:1.6rem;box-shadow:0 6px 20px rgba(0,0,0,.4);cursor:pointer;z-index:40;transition:transform .15s">🎹</button>
+
+<div id="fabPanel" class="glass" style="display:none;position:fixed;right:18px;bottom:86px;z-index:40;border-radius:16px;overflow:hidden;max-width:calc(100vw - 36px);box-shadow:0 20px 50px rgba(0,0,0,.6)">
+  <div style="padding:.6rem .9rem;display:flex;align-items:center;gap:.5rem;border-bottom:1px solid var(--line);background:var(--bg2)">
+    <button class="btn btn-ghost" style="padding:.3rem .6rem" onclick="fabSetMode('piano')" id="fabTabPiano">🎹 Piano</button>
+    <button class="btn btn-ghost" style="padding:.3rem .6rem" onclick="fabSetMode('guitar')" id="fabTabGuitar">🎸 Guitarra</button>
+    <div style="flex:1"></div>
+    <button class="btn btn-ghost" id="fabChordToggle" style="padding:.3rem .6rem" onclick="toggleChordMode()" title="Modo acorde (mantiene notas)">🎵 Sostener</button>
+    <button class="btn btn-ghost" style="padding:.3rem .6rem" id="fabOctaveBtn" onclick="toggleOctaves()" title="2 octavas">2×</button>
+    <button class="btn btn-ghost" style="padding:.3rem .6rem" onclick="toggleFab()" title="Cerrar">✕</button>
+  </div>
+  <div id="fabBody" style="padding:.8rem"></div>
+  <div style="padding:.4rem .9rem;background:var(--bg2);border-top:1px solid var(--line);font-size:.78rem;color:var(--muted);display:flex;justify-content:space-between;gap:.5rem;flex-wrap:wrap">
+    <div id="fabHint">Toca una nota. <b>Sostener</b> deja la nota sonando hasta que la sueltes.</div>
+    <div id="fabStatus"></div>
+  </div>
+</div>
+
 <!-- INSTALL HELP MODAL -->
 <div id="installModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(5,10,25,.82);backdrop-filter:blur(8px)">
   <div class="glass card p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto scrollbar relative">
@@ -1991,6 +2011,259 @@ function togglePianoInTutor(){
   const p=document.getElementById('tutorPianoPanel');
   p.classList.toggle('hidden');
   if(!p.classList.contains('hidden'))renderMiniPiano('tutorPianoHost');
+}
+
+// ============ FLOATING INSTRUMENT WIDGET ============
+let FAB_STATE = {
+  open: false,
+  mode: 'piano',       // 'piano' | 'guitar'
+  octaves: 1,          // 1 | 2
+  chordMode: false,    // true = sostener notas (acordes)
+  activeNotes: new Map() // note → true (mientras está pulsada)
+};
+
+function toggleFab(){
+  FAB_STATE.open = !FAB_STATE.open;
+  document.getElementById('fabPanel').style.display = FAB_STATE.open ? 'block' : 'none';
+  if(FAB_STATE.open) renderFab();
+}
+function fabSetMode(m){
+  FAB_STATE.mode = m;
+  renderFab();
+}
+function toggleChordMode(){
+  FAB_STATE.chordMode = !FAB_STATE.chordMode;
+  document.getElementById('fabChordToggle').style.background = FAB_STATE.chordMode ? 'linear-gradient(135deg,var(--brand),var(--brand2))' : '';
+  document.getElementById('fabChordToggle').style.color = FAB_STATE.chordMode ? '#fff' : '';
+  updateFabStatus();
+  if(!FAB_STATE.chordMode) releaseAllFabNotes();
+}
+function toggleOctaves(){
+  FAB_STATE.octaves = FAB_STATE.octaves===1 ? 2 : 1;
+  document.getElementById('fabOctaveBtn').textContent = FAB_STATE.octaves+'×';
+  document.getElementById('fabOctaveBtn').style.background = FAB_STATE.octaves===2 ? 'linear-gradient(135deg,var(--accent),var(--accent2))' : '';
+  document.getElementById('fabOctaveBtn').style.color = FAB_STATE.octaves===2 ? '#fff' : '';
+  renderFab();
+}
+function updateFabStatus(){
+  const active = [...FAB_STATE.activeNotes.keys()];
+  const el = document.getElementById('fabStatus');
+  if(active.length===0){el.textContent=''; return}
+  // detect chord
+  let chord = '';
+  if(active.length>=2){
+    const pcs = active.map(n=>ROOTS[n.replace(/\d/,'')]%12).sort((a,b)=>a-b);
+    const uniq = [...new Set(pcs)];
+    for(const root of uniq){
+      const ivs = uniq.map(p=>(p-root+12)%12).sort((a,b)=>a-b).join();
+      const rn = NOTE_MAP[root];
+      if(ivs==="0,4,7") chord=rn+' mayor';
+      else if(ivs==="0,3,7") chord=rn+'m';
+      else if(ivs==="0,4,7,11") chord=rn+'maj7';
+      else if(ivs==="0,4,7,10") chord=rn+'7';
+      else if(ivs==="0,3,7,10") chord=rn+'m7';
+      else if(ivs==="0,3,6,10") chord=rn+'m7♭5';
+      else if(ivs==="0,3,6") chord=rn+'°';
+      else if(ivs==="0,4,8") chord=rn+'+';
+      else if(ivs==="0,5,7") chord=rn+'sus4';
+      else if(ivs==="0,4,7,14"||ivs==="0,2,4,7") chord=rn+'add9';
+      if(chord) break;
+    }
+  }
+  el.innerHTML = active.map(n=>n.replace('#','♯')).join(' · ') + (chord?' → <b style="color:var(--accent2)">'+chord+'</b>':'');
+}
+
+async function fabPlay(note){
+  await ensureAudio();
+  if(FAB_STATE.chordMode){
+    if(FAB_STATE.activeNotes.has(note)){
+      // toggle off
+      synth.triggerRelease(note);
+      FAB_STATE.activeNotes.delete(note);
+    } else {
+      synth.triggerAttack(note);
+      FAB_STATE.activeNotes.set(note, true);
+    }
+  } else {
+    synth.triggerAttackRelease(note, '4n');
+  }
+  updateFabStatus();
+}
+function fabPressDown(note){
+  if(!FAB_STATE.chordMode){
+    (async()=>{await ensureAudio();synth.triggerAttack(note);FAB_STATE.activeNotes.set(note,true);updateFabStatus()})();
+  } else {
+    fabPlay(note);
+  }
+}
+function fabPressUp(note){
+  if(!FAB_STATE.chordMode){
+    synth.triggerRelease(note);
+    FAB_STATE.activeNotes.delete(note);
+    updateFabStatus();
+  }
+}
+function releaseAllFabNotes(){
+  for(const n of FAB_STATE.activeNotes.keys()) synth.triggerRelease(n);
+  FAB_STATE.activeNotes.clear();
+  updateFabStatus();
+  document.querySelectorAll('.fab-key.active, .fab-fret.active').forEach(el=>el.classList.remove('active'));
+}
+
+function renderFab(){
+  const b = document.getElementById('fabBody');
+  document.getElementById('fabTabPiano').style.background = FAB_STATE.mode==='piano' ? 'rgba(46,92,138,.3)' : '';
+  document.getElementById('fabTabGuitar').style.background = FAB_STATE.mode==='guitar' ? 'rgba(199,123,42,.3)' : '';
+  document.getElementById('fabHint').innerHTML = FAB_STATE.mode==='piano'
+    ? (FAB_STATE.chordMode ? 'Toca varias teclas — <b>se mantienen sonando</b> hasta que las toques otra vez.' : 'Mantén pulsada la tecla para sostener. Activa <b>Sostener</b> para construir acordes.')
+    : (FAB_STATE.chordMode ? 'Toca varios trastes — acordes de guitarra (sostenidos).' : 'Cada traste es una nota. Afinación estándar EADGBE.');
+  releaseAllFabNotes();
+  b.innerHTML = '';
+  if(FAB_STATE.mode==='piano') b.appendChild(buildFabPiano());
+  else b.appendChild(buildFabGuitar());
+}
+
+function buildFabPiano(){
+  const container = document.createElement('div');
+  container.style.cssText = 'position:relative;user-select:none;touch-action:none;overflow-x:auto;max-width:calc(100vw - 80px);padding-bottom:4px';
+  const octaves = FAB_STATE.octaves;
+  const whites = ['C','D','E','F','G','A','B'];
+  const blackOffsets = {'C#':1,'D#':2,'F#':4,'G#':5,'A#':6};
+  const kw = 36; // key width
+  const kh = 140; // key height
+  const totalKeys = whites.length * octaves;
+  const inner = document.createElement('div');
+  inner.style.cssText = `position:relative;width:${totalKeys*kw}px;height:${kh}px;margin:0 auto`;
+  // white keys
+  for(let o=0;o<octaves;o++){
+    whites.forEach((w,i)=>{
+      const note = w + (4+o);
+      const k = document.createElement('div');
+      k.className = 'fab-key key-white';
+      k.dataset.note = note;
+      k.style.cssText = `position:absolute;left:${(o*whites.length+i)*kw}px;width:${kw}px;height:${kh}px;border-radius:0 0 5px 5px;`;
+      k.innerHTML = `<div class="key-label">${w}${w==='C'?'<br><small>'+(4+o)+'</small>':''}</div>`;
+      bindKey(k, note);
+      inner.appendChild(k);
+    });
+  }
+  // black keys
+  for(let o=0;o<octaves;o++){
+    Object.entries(blackOffsets).forEach(([bn,off])=>{
+      const note = bn + (4+o);
+      const left = (o*whites.length*kw) + off*kw - 12;
+      const k = document.createElement('div');
+      k.className = 'fab-key key-black';
+      k.dataset.note = note;
+      k.style.cssText = `position:absolute;left:${left}px;top:0;width:24px;height:90px;border-radius:0 0 4px 4px;z-index:2`;
+      bindKey(k, note);
+      inner.appendChild(k);
+    });
+  }
+  container.appendChild(inner);
+  return container;
+}
+
+function bindKey(el, note){
+  // soporte mouse + multi-touch simultáneo
+  el.addEventListener('pointerdown', e=>{
+    e.preventDefault();
+    el.setPointerCapture?.(e.pointerId);
+    el.classList.add('active');
+    fabPressDown(note);
+  });
+  el.addEventListener('pointerup', e=>{
+    if(!FAB_STATE.chordMode){ el.classList.remove('active'); fabPressUp(note); }
+    else { setTimeout(()=>{if(!FAB_STATE.activeNotes.has(note))el.classList.remove('active')},50) }
+  });
+  el.addEventListener('pointerleave', e=>{
+    if(!FAB_STATE.chordMode && FAB_STATE.activeNotes.has(note)){ el.classList.remove('active'); fabPressUp(note) }
+  });
+  el.addEventListener('pointercancel', e=>{ el.classList.remove('active'); fabPressUp(note); });
+}
+
+function buildFabGuitar(){
+  // Afinación estándar de 6 cuerdas, grave→agudo: E2 A2 D3 G3 B3 E4
+  const tuning = ['E2','A2','D3','G3','B3','E4'];
+  const frets = FAB_STATE.octaves===1 ? 6 : 12; // 2x = más trastes
+  const fw = 44; // fret width
+  const fh = 24; // string spacing
+  const totalW = (frets+1)*fw;
+  const totalH = tuning.length*fh;
+  const wrap = document.createElement('div');
+  wrap.style.cssText = `position:relative;user-select:none;touch-action:none;background:linear-gradient(180deg,#6b4823,#4a2f15);border-radius:6px;padding:10px;overflow-x:auto;max-width:calc(100vw - 80px)`;
+  const inner = document.createElement('div');
+  inner.style.cssText = `position:relative;width:${totalW}px;height:${totalH}px;margin:0 auto`;
+
+  // strings (horizontal)
+  for(let s=0;s<tuning.length;s++){
+    const line = document.createElement('div');
+    line.style.cssText = `position:absolute;left:0;right:0;top:${s*fh+fh/2}px;height:${s<3?2:1}px;background:rgba(255,255,255,.55)`;
+    inner.appendChild(line);
+  }
+  // fret lines (vertical)
+  for(let f=0;f<=frets;f++){
+    const line = document.createElement('div');
+    line.style.cssText = `position:absolute;top:0;bottom:0;left:${f*fw}px;width:${f===0?3:1}px;background:${f===0?'#FFDDAA':'rgba(200,200,200,.6)'}`;
+    inner.appendChild(line);
+  }
+  // fret dots (3,5,7,9)
+  [3,5,7,9].forEach(f=>{
+    if(f<=frets){
+      const dot = document.createElement('div');
+      dot.style.cssText = `position:absolute;top:${totalH/2-4}px;left:${f*fw+fw/2-4}px;width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.35)`;
+      inner.appendChild(dot);
+    }
+  });
+
+  // clickable zones — cada celda (cuerda, traste)
+  for(let s=0;s<tuning.length;s++){
+    const rootMidi = noteNameToMidi(tuning[s]);
+    for(let f=0;f<=frets;f++){
+      const midi = rootMidi + f;
+      const note = midiToName(midi);
+      const cell = document.createElement('div');
+      cell.className = 'fab-fret';
+      cell.dataset.note = note;
+      cell.style.cssText = `position:absolute;left:${f*fw+2}px;top:${s*fh+2}px;width:${fw-4}px;height:${fh-4}px;cursor:pointer;border-radius:3px`;
+      // note label (small, faint)
+      const lbl = document.createElement('div');
+      lbl.textContent = note.replace(/\d/,'').replace('#','♯');
+      lbl.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:rgba(255,255,255,.35);font-family:monospace;pointer-events:none';
+      cell.appendChild(lbl);
+      bindFretCell(cell, note);
+      inner.appendChild(cell);
+    }
+  }
+  wrap.appendChild(inner);
+  return wrap;
+}
+
+function bindFretCell(el, note){
+  el.addEventListener('pointerdown', e=>{
+    e.preventDefault();
+    el.setPointerCapture?.(e.pointerId);
+    el.style.background = 'rgba(199,123,42,.6)';
+    el.classList.add('active');
+    fabPressDown(note);
+  });
+  el.addEventListener('pointerup', e=>{
+    if(!FAB_STATE.chordMode){ el.style.background=''; el.classList.remove('active'); fabPressUp(note); }
+  });
+  el.addEventListener('pointerleave', e=>{
+    if(!FAB_STATE.chordMode && FAB_STATE.activeNotes.has(note)){
+      el.style.background=''; el.classList.remove('active'); fabPressUp(note);
+    }
+  });
+  el.addEventListener('pointercancel', e=>{ el.style.background=''; fabPressUp(note) });
+}
+
+function noteNameToMidi(n){
+  const m = n.match(/^([A-G][#b]?)(-?\d+)$/);
+  if(!m) return 60;
+  const root = ROOTS[m[1]]||60;
+  const oct = parseInt(m[2],10);
+  return root - 12*4 + (oct+1)*12; // ROOTS are at octave 4 (midi 60 = C4)
 }
 
 // ============ INSTALL HELP MODAL ============

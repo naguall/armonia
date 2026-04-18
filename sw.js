@@ -3,7 +3,7 @@
 
 const CACHE = "armonia-v1";
 const SHELL = [
-  "./APP_ARMONIA_Prototipo.html",
+  "./index.html",
   "./manifest.webmanifest",
   "./icon-192.svg",
   "./icon-512.svg",
@@ -37,7 +37,7 @@ self.addEventListener("fetch", (e) => {
   if (e.request.mode === "navigate") {
     e.respondWith(
       fetch(e.request).catch(() =>
-        caches.match("./APP_ARMONIA_Prototipo.html")
+        caches.match("./index.html")
       )
     );
     return;
@@ -56,7 +56,7 @@ self.addEventListener("fetch", (e) => {
           }
           return resp;
         })
-        .catch(() => caches.match("./APP_ARMONIA_Prototipo.html"));
+        .catch(() => caches.match("./index.html"));
     })
   );
 });

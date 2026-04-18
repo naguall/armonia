@@ -3,7 +3,7 @@
   "short_name": "ARMONÍA",
   "description": "Aprende armonía, arreglos y composición a nivel profesional — en jazz, clásico, pop, latino y cine. Con tutor IA, ear training y análisis de canciones.",
   "id": "/armonia/",
-  "start_url": "./APP_ARMONIA_Prototipo.html",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui", "browser"],
@@ -24,28 +24,28 @@
       "name": "Lección de hoy",
       "short_name": "Lección",
       "description": "Continúa tu lección actual",
-      "url": "./APP_ARMONIA_Prototipo.html#lesson",
+      "url": "./index.html#lesson",
       "icons": [{ "src": "icon-192.svg", "sizes": "192x192" }]
     },
     {
       "name": "Tutor IA",
       "short_name": "Tutor",
       "description": "Pregúntale al tutor de armonía",
-      "url": "./APP_ARMONIA_Prototipo.html#tutor",
+      "url": "./index.html#tutor",
       "icons": [{ "src": "icon-192.svg", "sizes": "192x192" }]
     },
     {
       "name": "Ear training",
       "short_name": "Oído",
       "description": "Entrena tu oído",
-      "url": "./APP_ARMONIA_Prototipo.html#ear",
+      "url": "./index.html#ear",
       "icons": [{ "src": "icon-192.svg", "sizes": "192x192" }]
     },
     {
       "name": "Mapa de maestría",
       "short_name": "Maestría",
       "description": "Tu árbol de habilidades",
-      "url": "./APP_ARMONIA_Prototipo.html#mastery",
+      "url": "./index.html#mastery",
       "icons": [{ "src": "icon-192.svg", "sizes": "192x192" }]
     }
   ],
