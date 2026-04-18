@@ -1,0 +1,2752 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
+<title>ARMONÍA — v2.2</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="version" content="2.2.0">
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#2E5C8A" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E1220" media="(prefers-color-scheme: dark)">
+<meta name="description" content="Aprende armonía, arreglos y composición a nivel profesional — jazz, clásico, pop, latino, cine. Con tutor IA, ear training, análisis de canciones y mapa de maestría.">
+<meta name="application-name" content="ARMONÍA">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ARMONÍA">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="format-detection" content="telephone=no">
+<link rel="icon" type="image/svg+xml" href="icon-192.svg">
+<link rel="apple-touch-icon" href="icon-192.svg">
+<link rel="mask-icon" href="icon-192.svg" color="#2E5C8A">
+
+<!-- Open Graph -->
+<meta property="og:title" content="ARMONÍA — Aprende armonía a profundidad">
+<meta property="og:description" content="Tu profesor de armonía, arreglos y composición con tutor IA. Jazz, clásico, pop, latino, cine.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="icon-512.svg">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
+<style>
+  :root{
+    --brand:#2E5C8A;--brand2:#4A7FB8;--accent:#C77B2A;--accent2:#E29A4F;
+    --bg:#0E1220;--bg2:#141A2E;--bg3:#1C2541;--panel:#1E2A44;--line:#2B3957;
+    --text:#E7ECF5;--muted:#8B97B2;--ok:#4CAF8E;--warn:#E6B450;--err:#E06060;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+  body{background:radial-gradient(1200px 600px at 15% -10%,#1a2547 0%,transparent 60%),radial-gradient(900px 500px at 110% 10%,#2a1a3d 0%,transparent 55%),var(--bg)}
+  .brand-grad{background:linear-gradient(135deg,var(--brand) 0%,var(--accent) 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .glass{background:rgba(30,42,68,.65);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(75,95,140,.25)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px}
+  .card-hover{transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+  .card-hover:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,0,0,.35);border-color:var(--brand2)}
+  .btn{display:inline-flex;align-items:center;gap:.5rem;padding:.6rem 1rem;border-radius:10px;font-weight:600;font-size:.95rem;cursor:pointer;border:1px solid transparent;transition:all .15s}
+  .btn-primary{background:linear-gradient(135deg,var(--brand) 0%,var(--brand2) 100%);color:#fff}
+  .btn-primary:hover{filter:brightness(1.1)}
+  .btn-accent{background:linear-gradient(135deg,var(--accent) 0%,var(--accent2) 100%);color:#fff}
+  .btn-ghost{background:transparent;border-color:var(--line);color:var(--text)}
+  .btn-ghost:hover{border-color:var(--brand2);background:rgba(46,92,138,.15)}
+  .chip{display:inline-flex;align-items:center;gap:.35rem;padding:.25rem .6rem;border-radius:999px;font-size:.78rem;font-weight:600;background:rgba(46,92,138,.18);color:#BCD0EA;border:1px solid rgba(74,127,184,.35)}
+  .chip-accent{background:rgba(199,123,42,.18);color:#F2C68A;border-color:rgba(226,154,79,.4)}
+  .chip-ok{background:rgba(76,175,142,.18);color:#8FE4C6;border-color:rgba(76,175,142,.4)}
+  .nav-item{display:flex;align-items:center;gap:.7rem;padding:.7rem .9rem;border-radius:10px;color:var(--muted);cursor:pointer;font-weight:500;transition:all .15s}
+  .nav-item:hover{background:rgba(46,92,138,.18);color:var(--text)}
+  .nav-item.active{background:linear-gradient(135deg,rgba(46,92,138,.35) 0%,rgba(199,123,42,.15) 100%);color:#fff;box-shadow:inset 3px 0 0 var(--accent)}
+  .key{position:relative;cursor:pointer;user-select:none;border-radius:0 0 6px 6px;transition:background .1s}
+  .key-white{width:44px;height:170px;background:linear-gradient(180deg,#F6F8FB 0%,#D9DEE7 100%);border:1px solid #A7AEBD;box-shadow:inset 0 -6px 10px rgba(0,0,0,.08)}
+  .key-white:hover{background:linear-gradient(180deg,#E8ECF2 0%,#CBD0DB 100%)}
+  .key-white.active{background:linear-gradient(180deg,#7FB3E6 0%,#4A7FB8 100%);border-color:#4A7FB8}
+  .key-black{position:absolute;top:0;width:28px;height:110px;background:linear-gradient(180deg,#1a1a22 0%,#000 100%);border:1px solid #000;border-radius:0 0 4px 4px;z-index:2;box-shadow:inset 0 -3px 4px rgba(255,255,255,.1)}
+  .key-black:hover{background:linear-gradient(180deg,#2a2a35 0%,#111 100%)}
+  .key-black.active{background:linear-gradient(180deg,#4A7FB8 0%,#2E5C8A 100%)}
+  .key-label{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-size:10px;color:#4a5268;font-weight:600}
+  .key-black .key-label{color:#8E9ABB;bottom:6px}
+  .staff-line{border-top:1px solid #B7C0D0}
+  .hidden-section{display:none}
+  .section{animation:fadeIn .25s ease-out}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+  .pulsing{animation:pulse 1.4s ease-in-out infinite}
+  .chord-pill{padding:.55rem 1rem;border-radius:10px;background:rgba(46,92,138,.25);border:1px solid rgba(74,127,184,.45);color:#E7ECF5;font-weight:700;font-family:ui-monospace,"SF Mono",Consolas,monospace;cursor:pointer;transition:all .15s}
+  .chord-pill:hover{background:rgba(46,92,138,.5);transform:translateY(-1px)}
+  .chord-pill.active{background:linear-gradient(135deg,var(--accent) 0%,var(--accent2) 100%);color:#fff;border-color:var(--accent2)}
+  .progress-bar{height:6px;background:var(--bg3);border-radius:999px;overflow:hidden}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--brand) 0%,var(--accent) 100%);transition:width .5s}
+  .bubble{max-width:82%;padding:.85rem 1rem;border-radius:14px;line-height:1.55;font-size:.93rem}
+  .bubble-user{background:linear-gradient(135deg,var(--brand) 0%,var(--brand2) 100%);color:#fff;margin-left:auto;border-bottom-right-radius:4px}
+  .bubble-ai{background:var(--bg3);color:var(--text);margin-right:auto;border-bottom-left-radius:4px;border:1px solid var(--line)}
+  .skill-node{fill:var(--bg3);stroke:var(--line);stroke-width:1.5;cursor:pointer;transition:all .15s}
+  .skill-node:hover{fill:var(--brand);stroke:var(--brand2)}
+  .skill-node.mastered{fill:var(--ok);stroke:#6EDFB7}
+  .skill-node.learning{fill:var(--accent);stroke:var(--accent2)}
+  .skill-node.locked{fill:#252c44;stroke:#323a57;opacity:.5}
+  .skill-edge{stroke:var(--line);stroke-width:1.5;fill:none}
+  .kbd{background:var(--bg3);padding:.15rem .45rem;border-radius:5px;font-family:ui-monospace,monospace;font-size:.78rem;border:1px solid var(--line)}
+  select.styled,input.styled{background:var(--bg3);border:1px solid var(--line);color:var(--text);padding:.5rem .75rem;border-radius:8px;font-size:.9rem}
+  select.styled:focus,input.styled:focus{outline:none;border-color:var(--brand2)}
+  .scrollbar::-webkit-scrollbar{width:8px;height:8px}
+  .scrollbar::-webkit-scrollbar-thumb{background:#3a456a;border-radius:4px}
+  .divider{height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent);margin:1rem 0}
+  .tab{padding:.5rem 1rem;border-radius:10px 10px 0 0;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);font-weight:600}
+  .tab.active{color:var(--text);border-bottom-color:var(--accent);background:rgba(199,123,42,.08)}
+  .fretboard{background:linear-gradient(180deg,#6b4823 0%,#4a2f15 100%);border-radius:4px;position:relative}
+  .fret-line{position:absolute;top:0;bottom:0;width:2px;background:#C0C3C8}
+  .string-line{position:absolute;left:0;right:0;height:1px;background:rgba(255,255,255,.3)}
+  .fret-dot{position:absolute;width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.4);transform:translate(-50%,-50%)}
+  .note-circle{position:absolute;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;transform:translate(-50%,-50%);box-shadow:0 2px 6px rgba(0,0,0,.3);z-index:3}
+  .spin{animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .level-badge{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.05rem;color:#fff;background:linear-gradient(135deg,var(--brand) 0%,var(--brand2) 100%)}
+  .level-badge.advanced{background:linear-gradient(135deg,var(--accent) 0%,var(--accent2) 100%)}
+  .level-badge.master{background:linear-gradient(135deg,#7C3AED 0%,#A855F7 100%)}
+  .wave{position:relative;height:40px;overflow:hidden}
+  .wave-bar{display:inline-block;width:3px;margin-right:2px;background:var(--brand2);border-radius:2px;vertical-align:middle;animation:wave 1.2s ease-in-out infinite}
+  @keyframes wave{0%,100%{height:8px}50%{height:34px}}
+  .wave-bar:nth-child(2){animation-delay:.1s;background:var(--brand)}
+  .wave-bar:nth-child(3){animation-delay:.2s;background:var(--accent)}
+  .wave-bar:nth-child(4){animation-delay:.3s;background:var(--brand2)}
+  .wave-bar:nth-child(5){animation-delay:.4s;background:var(--accent2)}
+  .wave-bar:nth-child(6){animation-delay:.5s;background:var(--brand)}
+  @media (max-width:900px){
+    .hide-mobile{display:none!important}
+    .main-content{padding:1rem!important}
+  }
+  /* FAB PANEL: flotante en desktop, drawer fijo abajo en móvil */
+  #fabPanel{position:fixed;z-index:40;border-radius:16px;overflow:hidden;box-shadow:0 -4px 30px rgba(0,0,0,.6);background:rgba(14,18,32,.98);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(75,95,140,.25);touch-action:manipulation;display:flex;flex-direction:column}
+  #fabPanel #fabBody{flex:0 0 auto;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  /* Alturas FIJAS para que no brinque al cambiar texto */
+  #fabHint,#fabStatus{min-height:28px;display:flex;align-items:center}
+  #fabStatus{flex:1;justify-content:flex-end;text-align:right}
+  #fabSeq{min-height:32px}
+  /* Toolbar del panel: scroll horizontal si no cabe */
+  #fabPanel .fab-toolbar{display:flex;align-items:center;gap:.35rem;padding:.4rem .6rem;border-bottom:1px solid var(--line);background:var(--bg2);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;flex-shrink:0;white-space:nowrap}
+  #fabPanel .fab-toolbar .btn{flex-shrink:0;padding:.25rem .5rem;font-size:.8rem}
+  /* Secciones inferiores: compactas, no crecen */
+  #fabPanel .fab-footer{flex-shrink:0;overflow:hidden}
+  @media (min-width:700px){
+    #fabPanel{right:18px;bottom:86px;max-width:calc(100vw - 36px);width:auto}
+  }
+  @media (max-width:699px){
+    /* Drawer FIJO: usa dvh para respetar viewport real */
+    #fabPanel{left:0!important;right:0!important;bottom:0!important;top:auto!important;width:100%!important;max-width:100%!important;max-height:80dvh;border-radius:16px 16px 0 0;padding-bottom:env(safe-area-inset-bottom,0px)}
+    #fabPanel #fabBody{min-height:140px;max-height:180px}
+    /* Lock total html+body = NO scroll, NO URL-bar collapse */
+    html.fab-open,body.fab-open{overflow:hidden!important;position:fixed!important;width:100%!important;height:100%!important;top:0;left:0;touch-action:none!important;overscroll-behavior:none!important}
+    html.fab-open{-webkit-overflow-scrolling:auto}
+  }
+  /* LANDSCAPE en teléfono: mucho menos alto */
+  @media (max-width:900px) and (max-height:500px) and (orientation:landscape){
+    #fabPanel{max-height:100dvh!important;height:100dvh!important;border-radius:0!important;top:0!important;bottom:0!important;overflow-y:auto}
+    #fabPanel #fabBody{min-height:100px!important;max-height:120px!important}
+    #fabPanel .fab-toolbar .btn{padding:.2rem .4rem;font-size:.72rem}
+    #fabPanel .fab-footer{font-size:.72rem}
+    #fabPanel .fab-footer > div{padding:.25rem .6rem!important}
+  }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- SIDEBAR -->
+<aside id="sidebar" class="fixed left-0 top-0 h-full w-64 glass border-r border-[var(--line)] p-4 flex flex-col gap-1 z-30 hide-mobile">
+  <div class="flex items-center gap-3 px-2 py-4 mb-2">
+    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,var(--brand) 0%,var(--accent) 100%)">
+      <span class="text-white font-bold text-xl">♯</span>
+    </div>
+    <div>
+      <div class="font-bold text-lg leading-none">ARMONÍA</div>
+      <div class="text-xs text-[var(--muted)]">v2.2 · 2026-04-18</div>
+    </div>
+  </div>
+
+  <div class="nav-item active" data-route="home">
+    <span>🏠</span> <span data-i18n="nav.home">Inicio</span>
+  </div>
+  <div class="nav-item" data-route="curriculum">
+    <span>📚</span> <span data-i18n="nav.curriculum">Currículo</span>
+  </div>
+  <div class="nav-item" data-route="lesson">
+    <span>🎹</span> <span data-i18n="nav.lesson">Lección de hoy</span>
+  </div>
+  <div class="nav-item" data-route="tutor">
+    <span>🤖</span> <span data-i18n="nav.tutor">Tutor IA</span>
+  </div>
+  <div class="nav-item" data-route="ear">
+    <span>👂</span> <span data-i18n="nav.ear">Ear training</span>
+  </div>
+  <div class="nav-item" data-route="analysis">
+    <span>🎼</span> <span data-i18n="nav.analysis">Análisis de canciones</span>
+  </div>
+  <div class="nav-item" data-route="mastery">
+    <span>🌳</span> <span data-i18n="nav.mastery">Mapa de maestría</span>
+  </div>
+  <div class="nav-item" data-route="library">
+    <span>📖</span> <span data-i18n="nav.library">Biblioteca</span>
+  </div>
+  <div class="nav-item" data-route="pricing">
+    <span>💎</span> <span data-i18n="nav.pricing">Planes</span>
+  </div>
+  <div class="nav-item" data-route="profile">
+    <span>👤</span> <span data-i18n="nav.profile">Perfil</span>
+  </div>
+
+  <div class="mt-auto">
+    <div class="divider"></div>
+    <div class="px-2 py-1">
+      <div class="text-xs text-[var(--muted)] mb-2" data-i18n="sidebar.progress">Progreso general</div>
+      <div class="progress-bar mb-2"><div class="progress-fill" style="width:23%"></div></div>
+      <div class="flex items-center justify-between text-xs">
+        <span class="text-[var(--muted)]"><span data-i18n="sidebar.level">Nivel</span> 2</span>
+        <span class="text-[var(--accent2)]">23%</span>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main-content ml-0 md:ml-64 p-6 md:p-8 max-w-[1400px]">
+
+<!-- TOP BAR -->
+<header class="flex items-center justify-between mb-6 gap-3 flex-wrap">
+  <div class="flex items-center gap-3">
+    <button id="menuBtn" class="md:hidden btn btn-ghost" aria-label="menú" title="Menú">☰</button>
+    <button id="backBtn" class="btn btn-ghost hidden" aria-label="volver" title="Volver (Esc)">← <span class="hide-mobile">Volver</span></button>
+    <div>
+      <h1 id="pageTitle" class="text-2xl md:text-3xl font-bold leading-tight" data-i18n="home.title">Bienvenido a ARMONÍA</h1>
+      <p id="pageSub" class="text-sm text-[var(--muted)]" data-i18n="home.sub">Aprende armonía, arreglos y composición a profundidad — con tu estilo</p>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-2 flex-wrap">
+    <select id="langSelect" class="styled" title="Idioma">
+      <option value="es">🇪🇸 Español</option>
+      <option value="en">🇬🇧 English</option>
+      <option value="pt">🇧🇷 Português</option>
+      <option value="fr">🇫🇷 Français</option>
+      <option value="it">🇮🇹 Italiano</option>
+    </select>
+    <select id="styleSelect" class="styled" title="Enfoque de estilo">
+      <option value="classical">🎻 Clásico</option>
+      <option value="jazz" selected>🎷 Jazz</option>
+      <option value="pop">🎤 Pop / Rock</option>
+      <option value="latin">🥁 Latino / Folk</option>
+      <option value="film">🎬 Cine</option>
+    </select>
+    <button id="installBtn" class="btn btn-accent hidden" title="Instalar ARMONÍA en tu dispositivo">
+      <span>📲</span> <span class="hide-mobile">Instalar app</span>
+    </button>
+    <button id="helpBtn" class="btn btn-ghost" title="¿Cómo instalar?" aria-label="ayuda">?</button>
+    <div class="chip chip-accent">
+      <span>👑</span> Pro trial
+    </div>
+  </div>
+</header>
+
+<!-- ============ HOME ============ -->
+<section id="home" class="section">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
+
+    <div class="card card-hover p-5 lg:col-span-2" style="background:linear-gradient(135deg,rgba(46,92,138,.35) 0%,rgba(199,123,42,.2) 100%)">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <div class="chip chip-accent mb-2">🔥 Continúa donde estabas</div>
+          <h3 class="text-xl font-bold mb-1">Dominantes secundarios · Lección 3 de 5</h3>
+          <p class="text-sm text-[var(--muted)] mb-4">Tonicización de V/V y V/vi, con ejemplos en "Martha My Dear" y Horace Silver</p>
+          <div class="flex gap-2 flex-wrap">
+            <button class="btn btn-accent" onclick="route('lesson')">▶ Continuar lección</button>
+            <button class="btn btn-ghost" onclick="route('tutor')">💬 Preguntar al tutor</button>
+          </div>
+        </div>
+        <div class="hidden sm:block text-right">
+          <div class="text-4xl font-bold brand-grad">62%</div>
+          <div class="text-xs text-[var(--muted)]">de este módulo</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card p-5">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="level-badge advanced">🔥</div>
+        <div>
+          <div class="font-bold">Racha de 14 días</div>
+          <div class="text-xs text-[var(--muted)]">Sigue así — tu cerebro lo está cableando</div>
+        </div>
+      </div>
+      <div class="grid grid-cols-7 gap-1 mt-3">
+        <!-- last 14 days mini heatmap -->
+        <script>document.write([5,3,4,2,5,4,3,5,4,5,3,5,4,5].map(v=>`<div class='rounded' style='height:22px;background:rgba(199,123,42,${v/6})' title='${v} nodos'></div>`).join(''))</script>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Quick stats -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="card p-4">
+      <div class="text-xs text-[var(--muted)] mb-1">Nodos dominados</div>
+      <div class="text-2xl font-bold">46<span class="text-sm text-[var(--muted)]">/200</span></div>
+      <div class="progress-bar mt-2"><div class="progress-fill" style="width:23%"></div></div>
+    </div>
+    <div class="card p-4">
+      <div class="text-xs text-[var(--muted)] mb-1">Tiempo de estudio</div>
+      <div class="text-2xl font-bold">42<span class="text-sm text-[var(--muted)]">h esta semana</span></div>
+    </div>
+    <div class="card p-4">
+      <div class="text-xs text-[var(--muted)] mb-1">Transcripciones</div>
+      <div class="text-2xl font-bold">7</div>
+      <div class="text-xs text-[var(--ok)] mt-1">+2 esta semana</div>
+    </div>
+    <div class="card p-4">
+      <div class="text-xs text-[var(--muted)] mb-1">Precisión oído</div>
+      <div class="text-2xl font-bold">81<span class="text-sm">%</span></div>
+      <div class="text-xs text-[var(--accent2)] mt-1">Mejorando</div>
+    </div>
+  </div>
+
+  <!-- Recommendations -->
+  <h3 class="text-lg font-bold mb-3">🎯 Recomendado hoy</h3>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="card card-hover p-5 cursor-pointer" onclick="route('ear')">
+      <div class="chip mb-2">👂 Ear training · 10 min</div>
+      <div class="font-bold mb-1">Dictado de progresiones II–V–I</div>
+      <div class="text-sm text-[var(--muted)]">Tu precisión en dominantes secundarios bajó — un drill corto lo arregla</div>
+    </div>
+    <div class="card card-hover p-5 cursor-pointer" onclick="route('analysis')">
+      <div class="chip chip-accent mb-2">🎼 Análisis · 15 min</div>
+      <div class="font-bold mb-1">"All the Things You Are" — A1</div>
+      <div class="text-sm text-[var(--muted)]">Ideal para tu nivel: modulación por quintas en jazz standard</div>
+    </div>
+    <div class="card card-hover p-5 cursor-pointer" onclick="route('lesson')">
+      <div class="chip chip-ok mb-2">🎹 Ejercicio · 8 min</div>
+      <div class="font-bold mb-1">Voicings drop 2 en las 12 tonalidades</div>
+      <div class="text-sm text-[var(--muted)]">Construye tu vocabulario de comping al piano</div>
+    </div>
+  </div>
+
+  <!-- Style-aware reharm demo -->
+  <div class="card p-6">
+    <div class="flex items-center justify-between mb-3 flex-wrap gap-3">
+      <div>
+        <div class="text-sm text-[var(--muted)]">DEMO RÁPIDA</div>
+        <h3 class="text-xl font-bold">El mismo acorde, en 5 estilos</h3>
+      </div>
+      <div class="chip chip-accent">Exclusivo de ARMONÍA</div>
+    </div>
+    <p class="text-sm text-[var(--muted)] mb-4">Toca los botones para escuchar cómo suena un <b>V7 alterado</b> en distintos lenguajes</p>
+    <div class="flex gap-2 flex-wrap mb-3">
+      <button class="chord-pill" onclick="playStyleDemo('classical')">🎻 Clásico — V7♭9</button>
+      <button class="chord-pill" onclick="playStyleDemo('jazz')">🎷 Jazz — V7alt (UST)</button>
+      <button class="chord-pill" onclick="playStyleDemo('pop')">🎤 Pop — V7sus4</button>
+      <button class="chord-pill" onclick="playStyleDemo('latin')">🥁 Latino — V7♭9/♭13</button>
+      <button class="chord-pill" onclick="playStyleDemo('film')">🎬 Cine — V7♭9 con pedal</button>
+    </div>
+    <div id="styleDemoInfo" class="text-sm text-[var(--muted)]">Presiona un botón — se reproduce con voicing y orquestación del estilo</div>
+  </div>
+</section>
+
+<!-- ============ CURRICULUM ============ -->
+<section id="curriculum" class="section hidden-section">
+  <div class="mb-4 flex items-center gap-2 flex-wrap">
+    <div class="chip">6 niveles</div>
+    <div class="chip">58 módulos</div>
+    <div class="chip">340+ lecciones</div>
+    <div class="chip chip-accent">Selector de estilo: <span class="styleShow">Jazz</span></div>
+  </div>
+
+  <div id="levelsContainer" class="space-y-4"></div>
+</section>
+
+<!-- ============ LESSON ============ -->
+<section id="lesson" class="section hidden-section">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+    <!-- Left: lesson content -->
+    <div class="lg:col-span-2 space-y-5">
+
+      <div class="card p-6">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <div class="chip chip-accent mb-2">Nivel 3 · Módulo 1 · Lección 3 de 5</div>
+            <h2 class="text-2xl font-bold">Dominantes secundarios</h2>
+            <div class="text-sm text-[var(--muted)] mt-1">Tonicización y resolución — <span id="styleContext">enfoque jazz</span></div>
+          </div>
+          <div class="wave hidden md:block">
+            <span class="wave-bar"></span><span class="wave-bar"></span><span class="wave-bar"></span>
+            <span class="wave-bar"></span><span class="wave-bar"></span><span class="wave-bar"></span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <h3 class="font-bold mb-2">Concepto</h3>
+        <p class="text-[var(--text)] mb-3 leading-relaxed">Un <b>dominante secundario</b> es un acorde V7 que resuelve a un acorde distinto de la tónica. Se nota como <b>V7/X</b> ("cinco de equis"). Por un instante, el oído trata al acorde X como tónica local — y lo hace sonar <b>más importante, más estable o más lejano</b>.</p>
+        <p class="text-[var(--muted)] text-sm mb-4">En jazz moderno, cada dominante secundario viene con un II–7 relacionado que lo precede: IIm7 · V7/X · X.</p>
+
+        <div class="bg-[var(--bg2)] rounded-lg p-4 mb-4 border-l-4" style="border-color:var(--accent)">
+          <div class="text-xs font-bold text-[var(--accent2)] mb-1">🔬 MITO A DESMONTAR</div>
+          <p class="text-sm">"V7/X siempre tiene que resolver a X". <b>Falso.</b> Pueden resolver a un sustituto (backdoor, tritono sub) o no resolver del todo — Wayne Shorter y Bill Evans lo hacen constantemente. Lo esencial es la <i>tensión</i> que crea el dominante, no la resolución literal.</p>
+        </div>
+
+        <h3 class="font-bold mb-2">Ejemplo en contexto</h3>
+        <div class="bg-[var(--bg2)] rounded-lg p-4 mb-4">
+          <div class="text-xs text-[var(--muted)] mb-2" id="exampleSong">🎷 "All the Things You Are" — compases 1-4 (Kern/Hammerstein)</div>
+          <div class="flex gap-2 flex-wrap mb-3" id="exampleChords">
+            <button class="chord-pill" data-chord="fm7">Fm7</button>
+            <button class="chord-pill" data-chord="bbm7">B♭m7</button>
+            <button class="chord-pill" data-chord="eb7">E♭7</button>
+            <button class="chord-pill" data-chord="abmaj7">A♭maj7</button>
+          </div>
+          <div class="flex gap-2 items-center">
+            <button class="btn btn-primary" onclick="playProgression(['Fm7','Bbm7','Eb7','Abmaj7'])">▶ Reproducir progresión</button>
+            <button class="btn btn-ghost" onclick="playProgression(['Fm7','Bbm7','Eb7','Abmaj7'],true)">🐢 Lento</button>
+            <span class="text-xs text-[var(--muted)] ml-auto">vi — ii — V — I en A♭</span>
+          </div>
+        </div>
+
+        <h3 class="font-bold mb-2">Escalas disponibles (Chord-Scale)</h3>
+        <div class="text-sm space-y-2 mb-4">
+          <div class="flex gap-3 items-center">
+            <span class="chord-pill">E♭7</span>
+            <span class="text-[var(--muted)]">→ Mixolidio (sonido estándar)</span>
+          </div>
+          <div class="flex gap-3 items-center">
+            <span class="chord-pill">E♭7</span>
+            <span class="text-[var(--muted)]">→ Mixolidio ♭9/♭13 (cuando resuelve a menor)</span>
+          </div>
+          <div class="flex gap-3 items-center">
+            <span class="chord-pill">E♭7</span>
+            <span class="text-[var(--muted)]">→ Alterada (máxima tensión)</span>
+          </div>
+          <div class="flex gap-3 items-center">
+            <span class="chord-pill">E♭7</span>
+            <span class="text-[var(--muted)]">→ Lidio ♭7 (sustituto tritono funcional)</span>
+          </div>
+        </div>
+
+        <h3 class="font-bold mb-2">Tu turno — Quiz rápido</h3>
+        <div class="card p-4 mb-4" style="background:var(--bg2)">
+          <p class="mb-3"><b>Escucha</b> y elige: ¿cuál es el dominante secundario correcto?</p>
+          <div class="flex gap-2 mb-3"><button class="btn btn-primary" onclick="playQuizClip()">▶ Reproducir clip</button></div>
+          <div class="grid grid-cols-2 gap-2" id="quizOptions">
+            <button class="btn btn-ghost" onclick="answerQuiz(this,false)">V7/ii</button>
+            <button class="btn btn-ghost" onclick="answerQuiz(this,true)">V7/V</button>
+            <button class="btn btn-ghost" onclick="answerQuiz(this,false)">V7/vi</button>
+            <button class="btn btn-ghost" onclick="answerQuiz(this,false)">V7/IV</button>
+          </div>
+          <div id="quizFeedback" class="mt-3 text-sm"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: tools -->
+    <div class="space-y-5">
+      <div class="card p-5">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-bold">🎹 Teclado interactivo</h3>
+          <div class="text-xs text-[var(--muted)]">Click o teclas A-J</div>
+        </div>
+        <div id="piano" class="relative mx-auto" style="width:308px;height:170px"></div>
+        <div class="mt-3 text-center">
+          <div id="pianoNote" class="font-mono font-bold text-lg">—</div>
+          <div id="pianoChord" class="text-xs text-[var(--muted)]">Toca notas para detectar acorde</div>
+        </div>
+      </div>
+
+      <div class="card p-5">
+        <h3 class="font-bold mb-3">📊 Tu progreso</h3>
+        <div class="space-y-3 text-sm">
+          <div>
+            <div class="flex justify-between mb-1"><span>V/V en mayor</span><span class="text-[var(--ok)]">Dominio</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:88%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between mb-1"><span>V/vi</span><span class="text-[var(--accent2)]">En aprendizaje</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:55%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between mb-1"><span>II–V/X extendido</span><span class="text-[var(--muted)]">Siguiente</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:10%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card p-5">
+        <div class="flex items-center gap-2 mb-2">
+          <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background:linear-gradient(135deg,var(--brand) 0%,var(--accent) 100%)">🤖</div>
+          <h3 class="font-bold">Tutor listo</h3>
+        </div>
+        <p class="text-sm text-[var(--muted)] mb-3">"Noto que tu precisión con V/vi bajó. ¿Quieres un ejemplo más con 'I Will Survive'?"</p>
+        <button class="btn btn-primary w-full" onclick="route('tutor')">💬 Abrir conversación</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TUTOR IA ============ -->
+<section id="tutor" class="section hidden-section" style="height:calc(100dvh - 130px);min-height:500px">
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 h-full">
+
+    <!-- CHAT HISTORY SIDEBAR · en móvil es colapsable -->
+    <div id="chatHistoryPanel" class="card p-3 flex flex-col overflow-hidden hidden lg:flex">
+      <div class="flex gap-2 mb-3">
+        <button class="btn btn-primary flex-1" onclick="newChat()">+ Nueva</button>
+        <button class="btn btn-ghost" title="Buscar" onclick="toggleChatSearch()">🔎</button>
+      </div>
+      <input id="chatSearch" type="text" class="styled mb-3 hidden" placeholder="Buscar en conversaciones…" oninput="renderChatList()">
+      <div class="text-xs text-[var(--muted)] mb-2 uppercase font-bold px-1">Conversaciones</div>
+      <div id="chatList" class="flex-1 overflow-y-auto space-y-1 scrollbar px-1"></div>
+      <div class="divider"></div>
+      <div class="text-xs text-[var(--muted)] px-1">💡 Guardados localmente — offline.</div>
+    </div>
+
+    <!-- CHAT MAIN -->
+    <div class="card flex flex-col lg:col-span-3 overflow-hidden" style="min-height:0">
+      <div class="p-3 border-b border-[var(--line)] flex items-center gap-2 flex-wrap" style="flex:none">
+        <button class="btn btn-ghost lg:hidden" title="Historial" onclick="toggleChatHistory()" style="padding:.4rem .5rem">☰</button>
+        <div class="w-9 h-9 rounded-full flex items-center justify-center" style="background:linear-gradient(135deg,var(--brand) 0%,var(--accent) 100%)">
+          <span class="text-white">🤖</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <input id="chatTitleInput" class="font-bold bg-transparent border-0 outline-0 w-full text-[var(--text)]" style="font-size:.95rem" onchange="renameCurrentChat(this.value)" value="Nueva conversación">
+          <div class="text-xs text-[var(--ok)] flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[var(--ok)]"></span> Tutor en línea · con contexto</div>
+        </div>
+        <button class="btn btn-ghost" style="padding:.4rem .6rem" title="Nueva conversación" onclick="newChat()">➕</button>
+        <button class="btn btn-ghost" style="padding:.4rem .6rem" title="Contexto (lección + partitura)" onclick="toggleTutorContext()">📎</button>
+        <button class="btn btn-ghost" style="padding:.4rem .6rem" title="Borrar conversación" onclick="deleteCurrentChat()">🗑</button>
+      </div>
+
+      <!-- Context panel (collapsible) -->
+      <div id="tutorContext" class="hidden p-3 border-b border-[var(--line)] bg-[var(--bg2)] flex gap-2 overflow-x-auto scrollbar">
+        <div class="chip chip-accent flex-shrink-0">📄 All the Things You Are</div>
+        <div class="chip chip-accent flex-shrink-0">📚 Dominantes secundarios</div>
+        <div class="chip chip-accent flex-shrink-0" id="tutorStyleChip">🎷 Jazz</div>
+        <div class="chip flex-shrink-0">Nivel 3</div>
+      </div>
+
+      <div id="tutorMessages" class="overflow-y-auto p-4 space-y-3 scrollbar" style="flex:1 1 0;min-height:0"></div>
+
+      <!-- Quick suggestions -->
+      <div id="tutorSuggestions" class="px-3 pb-2 pt-1 flex gap-2 overflow-x-auto scrollbar" style="flex:none">
+        <button class="btn btn-ghost flex-shrink-0 text-sm" onclick="tutorAsk('¿Por qué E♭7 funciona aquí?')">¿Por qué E♭7 funciona?</button>
+        <button class="btn btn-ghost flex-shrink-0 text-sm" onclick="tutorAsk('Dame un ejercicio sobre dominantes secundarios')">Dame un ejercicio</button>
+        <button class="btn btn-ghost flex-shrink-0 text-sm" onclick="tutorAsk('¿Qué sustitución usaría Bill Evans?')">Sustituciones de Bill Evans</button>
+        <button class="btn btn-ghost flex-shrink-0 text-sm" onclick="tutorAsk('¿Cómo se hace esto en flamenco?')">¿Y en flamenco?</button>
+        <button class="btn btn-ghost flex-shrink-0 text-sm" onclick="tutorAsk('¿Y si fuera negative harmony?')">Negative harmony</button>
+      </div>
+
+      <!-- MIC RECORDING UI -->
+      <div id="tutorMicPanel" class="hidden px-4 py-3 border-t border-[var(--line)] bg-[var(--bg2)]">
+        <div class="flex items-center gap-3">
+          <div class="w-3 h-3 rounded-full bg-[var(--err)] pulsing"></div>
+          <div class="flex-1">
+            <div class="text-sm font-bold">Grabando… <span id="micTimer">0.0s</span></div>
+            <canvas id="tutorMicWave" width="800" height="40" class="w-full"></canvas>
+          </div>
+          <button class="btn btn-ghost" onclick="cancelMic()">Cancelar</button>
+          <button class="btn btn-primary" onclick="stopAndSendMic()">⏹ Enviar</button>
+        </div>
+      </div>
+
+      <!-- MINI PIANO (compartido) -->
+      <div id="tutorPianoPanel" class="hidden px-4 py-3 border-t border-[var(--line)] bg-[var(--bg2)]">
+        <div class="flex items-center justify-between mb-2">
+          <div class="text-xs text-[var(--muted)]">🎹 Toca para tocar — el tutor "ve" las notas</div>
+          <button class="btn btn-ghost text-xs" onclick="togglePianoInTutor()">Ocultar</button>
+        </div>
+        <div id="tutorPianoHost" class="flex justify-center"></div>
+        <div class="text-center text-xs text-[var(--muted)] mt-2">Notas tocadas: <span id="tutorPianoNotes">—</span></div>
+      </div>
+
+      <div class="p-3 border-t border-[var(--line)]" style="flex:none">
+        <div class="flex gap-2 items-center">
+          <button class="btn btn-ghost" style="padding:.4rem .6rem" title="Mini piano" onclick="togglePianoInTutor()">🎹</button>
+          <button id="tutorMicBtn" class="btn btn-ghost" style="padding:.4rem .6rem" title="Grabar voz/melodía" onclick="startTutorMic()">🎤</button>
+          <input id="tutorInput" class="styled flex-1" style="min-width:0" placeholder="Pregunta o canta la melodía…" onkeydown="if(event.key==='Enter')tutorSend()">
+          <button class="btn btn-primary" style="padding:.4rem .9rem" onclick="tutorSend()">↵</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ EAR TRAINING ============ -->
+<section id="ear" class="section hidden-section">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+    <div class="lg:col-span-2 space-y-5">
+      <div class="card p-6 text-center">
+        <div class="flex items-center justify-center gap-2 mb-3">
+          <div class="chip">Nivel 3</div>
+          <div class="chip chip-accent" id="earMode">Intervalos</div>
+          <div class="chip chip-ok">Adaptativo</div>
+        </div>
+
+        <h2 class="text-2xl font-bold mb-2" data-i18n="ear.title">¿Qué intervalo escuchas?</h2>
+        <p class="text-sm text-[var(--muted)] mb-6">El motor ajusta la dificultad según tu rendimiento</p>
+
+        <div class="flex justify-center items-center mb-6">
+          <button class="btn btn-primary text-lg py-4 px-8" onclick="earPlay()">
+            ▶ Reproducir intervalo
+          </button>
+        </div>
+
+        <div id="earWaveform" class="wave mb-5 flex items-center justify-center gap-1" style="height:50px">
+          <!-- bars injected by JS during playback -->
+        </div>
+
+        <!-- Mic option: sing the interval -->
+        <div class="mb-5 p-3 rounded-lg" style="background:var(--bg2)">
+          <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
+            <div class="text-sm"><b>🎤 O canta la respuesta</b> <span class="text-[var(--muted)]">— el detector de pitch identifica el intervalo</span></div>
+            <button id="earMicBtn" class="btn btn-accent" onclick="earMicToggle()">🎤 Cantar</button>
+          </div>
+          <canvas id="earMicWave" width="800" height="40" class="w-full hidden" style="background:var(--bg);border-radius:8px"></canvas>
+          <div id="earMicResult" class="text-xs text-[var(--muted)] mt-2 hidden"></div>
+        </div>
+
+        <!-- Mini piano hint showing the interval after answer -->
+        <div id="earPianoHint" class="mb-4 hidden">
+          <div class="text-xs text-[var(--muted)] mb-2">🎹 Las notas que sonaron:</div>
+          <div id="earPianoHost" class="flex justify-center"></div>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4" id="earOptions">
+          <button class="btn btn-ghost" data-int="2m">2a menor</button>
+          <button class="btn btn-ghost" data-int="2M">2a mayor</button>
+          <button class="btn btn-ghost" data-int="3m">3a menor</button>
+          <button class="btn btn-ghost" data-int="3M">3a mayor</button>
+          <button class="btn btn-ghost" data-int="4J">4a justa</button>
+          <button class="btn btn-ghost" data-int="TT">Tritono</button>
+          <button class="btn btn-ghost" data-int="5J">5a justa</button>
+          <button class="btn btn-ghost" data-int="6M">6a mayor</button>
+          <button class="btn btn-ghost" data-int="7m">7a menor</button>
+          <button class="btn btn-ghost" data-int="7M">7a mayor</button>
+          <button class="btn btn-ghost" data-int="8P">Octava</button>
+          <button class="btn btn-ghost" onclick="earPlay()">🔁 Repetir</button>
+        </div>
+
+        <div id="earFeedback" class="text-sm mt-4"></div>
+      </div>
+    </div>
+
+    <div class="space-y-4">
+      <div class="card p-5">
+        <h3 class="font-bold mb-3">🎯 Sesión actual</h3>
+        <div class="grid grid-cols-2 gap-3 text-center">
+          <div class="p-3 rounded-lg" style="background:var(--bg2)">
+            <div class="text-xs text-[var(--muted)]">Aciertos</div>
+            <div class="text-2xl font-bold text-[var(--ok)]" id="earCorrect">0</div>
+          </div>
+          <div class="p-3 rounded-lg" style="background:var(--bg2)">
+            <div class="text-xs text-[var(--muted)]">Errores</div>
+            <div class="text-2xl font-bold text-[var(--err)]" id="earWrong">0</div>
+          </div>
+          <div class="p-3 rounded-lg col-span-2" style="background:var(--bg2)">
+            <div class="text-xs text-[var(--muted)]">Precisión</div>
+            <div class="text-3xl font-bold" id="earAccuracy">—%</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card p-5">
+        <h3 class="font-bold mb-3">Modos disponibles</h3>
+        <div class="space-y-2 text-sm">
+          <button class="btn btn-ghost w-full justify-start" onclick="setEarMode('intervals')">🎵 Intervalos melódicos</button>
+          <button class="btn btn-ghost w-full justify-start" onclick="setEarMode('chordQual')">🎹 Cualidades de acordes</button>
+          <button class="btn btn-ghost w-full justify-start" onclick="setEarMode('progressions')">🔄 Progresiones funcionales</button>
+          <button class="btn btn-ghost w-full justify-start opacity-60" disabled>🎼 Dictado melódico (Pro)</button>
+          <button class="btn btn-ghost w-full justify-start opacity-60" disabled>🎶 Dictado armónico (Pro)</button>
+          <button class="btn btn-ghost w-full justify-start opacity-60" disabled>📻 Contextual por canción (Pro)</button>
+        </div>
+      </div>
+
+      <div class="card p-5" style="background:linear-gradient(135deg,rgba(199,123,42,.12) 0%,rgba(46,92,138,.15) 100%)">
+        <h3 class="font-bold mb-2">💡 Método funcional</h3>
+        <p class="text-xs text-[var(--muted)] leading-relaxed">Escuchar intervalos como <b>grados de una tonalidad</b> (no pares aislados) acelera el oído real 3x. Activa el método funcional en Configuración.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SONG ANALYSIS ============ -->
+<section id="analysis" class="section hidden-section">
+  <div class="mb-4 flex gap-2 flex-wrap items-center">
+    <input class="styled flex-1 min-w-[200px]" placeholder="🔍 Busca una canción o pega un link de YouTube / Spotify..." value="Autumn Leaves — Joseph Kosma">
+    <button class="btn btn-primary">🔎 Analizar</button>
+    <button class="btn btn-ghost">📎 Subir partitura (PDF / MusicXML)</button>
+    <button class="btn btn-ghost">🎙️ Separar stems</button>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+    <div class="lg:col-span-2 space-y-5">
+      <div class="card p-6">
+        <div class="flex items-start justify-between mb-3 flex-wrap gap-3">
+          <div>
+            <div class="text-sm text-[var(--muted)]">Standard de jazz · 1945</div>
+            <h2 class="text-2xl font-bold">Autumn Leaves <span class="text-sm text-[var(--muted)] font-normal">(Les Feuilles Mortes)</span></h2>
+            <div class="text-sm text-[var(--muted)]">Joseph Kosma / Jacques Prévert · Tono original: Sol menor</div>
+          </div>
+          <div class="flex gap-2">
+            <button class="btn btn-ghost">♡</button>
+            <button class="btn btn-ghost">📑</button>
+          </div>
+        </div>
+
+        <div class="flex gap-2 flex-wrap mb-4">
+          <span class="chip">Forma AABC</span>
+          <span class="chip">32 compases</span>
+          <span class="chip chip-accent">ii–V–I menor</span>
+          <span class="chip">Modulación relativa</span>
+        </div>
+
+        <div class="bg-[var(--bg2)] rounded-lg p-5 mb-4">
+          <div class="flex items-center justify-between mb-3">
+            <div class="text-xs text-[var(--muted)]">SECCIÓN A1 · Compases 1–8</div>
+            <div class="flex gap-2">
+              <button class="btn btn-primary" onclick="playProgression(['Cm7','F7','Bbmaj7','Ebmaj7','Am7b5','D7','Gm','Gm'])">▶ Escuchar</button>
+              <button class="btn btn-ghost" onclick="playProgression(['Cm7','F7','Bbmaj7','Ebmaj7','Am7b5','D7','Gm','Gm'],true)">🐢</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-4 gap-2 mb-3" id="autumnChords">
+            <button class="chord-pill text-center" data-chord="cm7">Cm7</button>
+            <button class="chord-pill text-center" data-chord="f7">F7</button>
+            <button class="chord-pill text-center" data-chord="bbmaj7">B♭maj7</button>
+            <button class="chord-pill text-center" data-chord="ebmaj7">E♭maj7</button>
+            <button class="chord-pill text-center" data-chord="am7b5">Am7♭5</button>
+            <button class="chord-pill text-center" data-chord="d7">D7</button>
+            <button class="chord-pill text-center" data-chord="gm">Gm</button>
+            <button class="chord-pill text-center" data-chord="gm2">Gm</button>
+          </div>
+
+          <div class="grid grid-cols-4 gap-2 text-center text-xs text-[var(--accent2)] font-mono font-bold">
+            <div>ii</div><div>V</div><div>I<sup>Δ</sup></div><div>IV<sup>Δ</sup></div>
+            <div>vii<sup>ø</sup></div><div>V7</div><div>i</div><div>i</div>
+          </div>
+          <div class="grid grid-cols-4 gap-2 text-center text-xs text-[var(--muted)] mt-1">
+            <div colspan="4" style="grid-column:1/5">en B♭ mayor ←→ en Sol menor</div>
+          </div>
+        </div>
+
+        <div class="bg-[var(--bg2)] rounded-lg p-4 mb-4 border-l-4" style="border-color:var(--brand2)">
+          <div class="text-xs font-bold text-[var(--brand2)] mb-1">🔬 ANÁLISIS</div>
+          <p class="text-sm leading-relaxed">La pieza vive en la <b>ambigüedad tonal</b> entre B♭ mayor y su relativo menor Sol menor. Los primeros 4 compases se oyen claramente en B♭ (ii–V–I–IV), y en el compás 5 el <b>Am7♭5 – D7</b> gira el eje hacia Gm. Este contraste <i>mayor / menor relativo</i> es el motor dramático de la pieza y aparece en miles de standards.</p>
+        </div>
+
+        <div class="bg-[var(--bg2)] rounded-lg p-4 border-l-4" style="border-color:var(--accent)">
+          <div class="text-xs font-bold text-[var(--accent2)] mb-1">💡 TÉCNICAS DE REHARMONIZACIÓN</div>
+          <div class="text-sm space-y-2">
+            <div><b>Tritono sub:</b> F7 → B7 en c.2 crea un bajo cromático Cm7 – B7 – B♭maj7</div>
+            <div><b>II–V relativo:</b> meter F♯m7 – B7 antes de B♭maj7 (extendido)</div>
+            <div><b>Backdoor:</b> sustituir F7 – B♭maj7 por A♭7 – B♭maj7 al estilo Bill Evans</div>
+            <div><b>Modal interchange:</b> cambiar Am7♭5 por Am7 para color mayor sobre Dorian</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="space-y-5">
+      <div class="card p-5">
+        <h3 class="font-bold mb-3">🎛 Stems (IA)</h3>
+        <p class="text-xs text-[var(--muted)] mb-3">Separación de pistas — aisla lo que quieras practicar</p>
+        <div class="space-y-2">
+          <div class="flex items-center gap-2 p-2 rounded-lg" style="background:var(--bg2)">
+            <span>🎤</span><span class="text-sm flex-1">Voz</span>
+            <button class="btn btn-ghost py-1">🔊</button>
+          </div>
+          <div class="flex items-center gap-2 p-2 rounded-lg" style="background:var(--bg2)">
+            <span>🎹</span><span class="text-sm flex-1">Piano</span>
+            <button class="btn btn-ghost py-1">🔊</button>
+          </div>
+          <div class="flex items-center gap-2 p-2 rounded-lg" style="background:var(--bg2)">
+            <span>🎸</span><span class="text-sm flex-1">Bajo</span>
+            <button class="btn btn-ghost py-1">🔇</button>
+          </div>
+          <div class="flex items-center gap-2 p-2 rounded-lg" style="background:var(--bg2)">
+            <span>🥁</span><span class="text-sm flex-1">Batería</span>
+            <button class="btn btn-ghost py-1">🔊</button>
+          </div>
+        </div>
+        <button class="btn btn-primary w-full mt-3">🎧 Practicar como bajista</button>
+      </div>
+
+      <div class="card p-5">
+        <h3 class="font-bold mb-3">🎼 Grabaciones célebres</h3>
+        <div class="space-y-2 text-sm">
+          <div class="flex items-center justify-between p-2 rounded" style="background:var(--bg2)">
+            <div>
+              <div class="font-bold">Bill Evans Trio</div>
+              <div class="text-xs text-[var(--muted)]">Portrait in Jazz · 1960</div>
+            </div>
+            <button class="btn btn-ghost py-1">→</button>
+          </div>
+          <div class="flex items-center justify-between p-2 rounded" style="background:var(--bg2)">
+            <div>
+              <div class="font-bold">Cannonball Adderley</div>
+              <div class="text-xs text-[var(--muted)]">Somethin' Else · 1958</div>
+            </div>
+            <button class="btn btn-ghost py-1">→</button>
+          </div>
+          <div class="flex items-center justify-between p-2 rounded" style="background:var(--bg2)">
+            <div>
+              <div class="font-bold">Chet Baker</div>
+              <div class="text-xs text-[var(--muted)]">In Paris · 1955</div>
+            </div>
+            <button class="btn btn-ghost py-1">→</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card p-5">
+        <h3 class="font-bold mb-3">🎯 Ejercicios propuestos</h3>
+        <div class="space-y-2 text-sm">
+          <div class="p-2 rounded cursor-pointer hover:bg-[var(--bg2)]">✍️ Transcribe la melodía del A1</div>
+          <div class="p-2 rounded cursor-pointer hover:bg-[var(--bg2)]">🎹 Toca los voicings drop-2</div>
+          <div class="p-2 rounded cursor-pointer hover:bg-[var(--bg2)]">👂 Dictado armónico de los 8 compases</div>
+          <div class="p-2 rounded cursor-pointer hover:bg-[var(--bg2)]">🎨 Compone una reharm tuya</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MASTERY MAP ============ -->
+<section id="mastery" class="section hidden-section">
+  <div class="mb-4 flex gap-2 flex-wrap items-center">
+    <div class="chip chip-ok">● Dominado · 46</div>
+    <div class="chip chip-accent">● Aprendiendo · 12</div>
+    <div class="chip">● Siguiente · 8</div>
+    <div class="chip" style="opacity:.6">● Bloqueado · 134</div>
+  </div>
+
+  <div class="card p-4">
+    <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+      <h3 class="font-bold">Tu árbol de habilidades</h3>
+      <div class="flex gap-2 text-sm">
+        <button class="tab active" data-domain="all">Todos</button>
+        <button class="tab" data-domain="tonal">Tonal</button>
+        <button class="tab" data-domain="jazz">Jazz</button>
+        <button class="tab" data-domain="arranging">Arreglos</button>
+        <button class="tab" data-domain="ear">Oído</button>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto scrollbar">
+      <svg id="skillTree" width="1100" height="560" viewBox="0 0 1100 560">
+        <!-- edges and nodes rendered by JS -->
+      </svg>
+    </div>
+
+    <div id="skillDetail" class="mt-4 p-4 rounded-lg hidden" style="background:var(--bg2)">
+      <div class="flex items-start justify-between">
+        <div>
+          <div class="text-xs text-[var(--accent2)] mb-1" id="skillDomain"></div>
+          <h4 class="font-bold text-lg" id="skillName"></h4>
+          <p class="text-sm text-[var(--muted)] mt-1" id="skillDesc"></p>
+        </div>
+        <div class="text-right">
+          <div class="text-xs text-[var(--muted)]">Dominio</div>
+          <div class="text-2xl font-bold" id="skillMastery">—</div>
+        </div>
+      </div>
+      <div class="mt-3 flex gap-2 flex-wrap">
+        <button class="btn btn-primary">🎯 Practicar ahora</button>
+        <button class="btn btn-ghost">📚 Ver lección</button>
+        <button class="btn btn-ghost">🤖 Preguntar al tutor</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ LIBRARY ============ -->
+<section id="library" class="section hidden-section">
+  <div class="mb-4 flex gap-2 flex-wrap items-center">
+    <input class="styled flex-1 min-w-[200px]" placeholder="🔍 Buscar canción, autor, estilo, grado...">
+    <select class="styled"><option>Todas las dificultades</option><option>Principiante</option><option>Intermedio</option><option>Avanzado</option></select>
+    <select class="styled"><option>Todos los estilos</option><option>Jazz</option><option>Clásico</option><option>Pop</option><option>Latino</option><option>Cine</option></select>
+  </div>
+
+  <div id="songLibrary" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+</section>
+
+<!-- ============ PRICING ============ -->
+<section id="pricing" class="section hidden-section">
+  <div class="text-center mb-8 max-w-2xl mx-auto">
+    <h2 class="text-3xl md:text-4xl font-bold mb-3">Construye tu oído y tu voz</h2>
+    <p class="text-[var(--muted)]">Empieza gratis. Upgrade cuando ARMONÍA se convierta en tu profesor diario.</p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+    <div class="card p-6">
+      <div class="text-sm text-[var(--muted)] mb-1">Free</div>
+      <div class="text-4xl font-bold mb-3">$0</div>
+      <div class="text-sm mb-4 text-[var(--muted)]">Prueba la profundidad</div>
+      <ul class="text-sm space-y-2 mb-6">
+        <li>✓ Nivel 1 completo</li>
+        <li>✓ 10 canciones analizadas</li>
+        <li>✓ 20 min / mes de tutor IA</li>
+        <li>✓ Ear training básico</li>
+      </ul>
+      <button class="btn btn-ghost w-full">Empezar</button>
+    </div>
+
+    <div class="card p-6 relative" style="border-color:var(--brand2);box-shadow:0 10px 40px rgba(46,92,138,.35)">
+      <div class="absolute -top-3 left-1/2 -translate-x-1/2 chip chip-accent">RECOMENDADO</div>
+      <div class="text-sm text-[var(--brand2)] mb-1 font-bold">Pro</div>
+      <div class="text-4xl font-bold mb-1">$14.99<span class="text-sm text-[var(--muted)] font-normal">/mes</span></div>
+      <div class="text-xs text-[var(--ok)] mb-4">o $129 al año · ahorras 40$</div>
+      <ul class="text-sm space-y-2 mb-6">
+        <li>✓ <b>Todo el currículo</b> (6 niveles)</li>
+        <li>✓ Tutor IA ilimitado con contexto</li>
+        <li>✓ Biblioteca completa 300+ canciones</li>
+        <li>✓ Transcripción asistida + stems</li>
+        <li>✓ Mapa de maestría completo</li>
+        <li>✓ Descarga offline</li>
+      </ul>
+      <button class="btn btn-primary w-full">Empezar Pro</button>
+    </div>
+
+    <div class="card p-6" style="border-color:var(--accent)">
+      <div class="text-sm text-[var(--accent2)] mb-1 font-bold">Pro+</div>
+      <div class="text-4xl font-bold mb-1">$24.99<span class="text-sm text-[var(--muted)] font-normal">/mes</span></div>
+      <div class="text-xs text-[var(--ok)] mb-4">o $229 al año</div>
+      <ul class="text-sm space-y-2 mb-6">
+        <li>✓ Todo lo de Pro</li>
+        <li>✓ <b>Masterclass mensual en vivo</b> con invitados</li>
+        <li>✓ 3 revisiones humanas / año de capstones</li>
+        <li>✓ Acceso beta a features nuevos</li>
+        <li>✓ Plugin DAW (Ableton / Logic)</li>
+      </ul>
+      <button class="btn btn-accent w-full">Empezar Pro+</button>
+    </div>
+
+    <div class="card p-6">
+      <div class="text-sm text-[var(--muted)] mb-1">Institucional</div>
+      <div class="text-4xl font-bold mb-1">$15<span class="text-sm text-[var(--muted)] font-normal">/alumno/año</span></div>
+      <div class="text-xs text-[var(--muted)] mb-4">Mín. 50 licencias</div>
+      <ul class="text-sm space-y-2 mb-6">
+        <li>✓ Panel de profesor</li>
+        <li>✓ Asignaciones y gradebook</li>
+        <li>✓ Analítica por alumno</li>
+        <li>✓ SSO (SAML, Google)</li>
+        <li>✓ Soporte dedicado</li>
+      </ul>
+      <button class="btn btn-ghost w-full">Hablar con ventas</button>
+    </div>
+  </div>
+
+  <div class="mt-10 card p-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 items-center">
+      <div>
+        <div class="text-xs text-[var(--accent2)] font-bold mb-1">🎓 DESCUENTOS</div>
+        <h3 class="font-bold text-lg mb-1">40% para estudiantes</h3>
+        <p class="text-sm text-[var(--muted)]">Con verificación SheerID. Válido en Pro y Pro+.</p>
+      </div>
+      <div>
+        <div class="text-xs text-[var(--accent2)] font-bold mb-1">🌎 PRECIOS REGIONALES</div>
+        <h3 class="font-bold text-lg mb-1">Paridad de poder adquisitivo</h3>
+        <p class="text-sm text-[var(--muted)]">Latam, India, SE Asia, África — precios ajustados ~40-60%.</p>
+      </div>
+      <div>
+        <div class="text-xs text-[var(--accent2)] font-bold mb-1">💌 INVITA AMIGOS</div>
+        <h3 class="font-bold text-lg mb-1">1 mes gratis por amigo</h3>
+        <p class="text-sm text-[var(--muted)]">Y ellos reciben 14 días Pro gratis.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PROFILE ============ -->
+<section id="profile" class="section hidden-section">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+    <div class="card p-6 lg:col-span-1 text-center">
+      <div class="w-24 h-24 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl" style="background:linear-gradient(135deg,var(--brand) 0%,var(--accent) 100%)">🎸</div>
+      <h2 class="text-xl font-bold">Bearman</h2>
+      <p class="text-sm text-[var(--muted)] mb-3">campoltro@gmail.com</p>
+      <div class="flex justify-center gap-2 flex-wrap mb-4">
+        <span class="chip">Músico pro</span>
+        <span class="chip chip-accent">Nivel 2</span>
+        <span class="chip chip-ok">Streak 14d</span>
+      </div>
+      <button class="btn btn-ghost w-full">✏️ Editar perfil</button>
+    </div>
+
+    <div class="lg:col-span-2 space-y-5">
+      <div class="card p-6">
+        <h3 class="font-bold mb-3">Preferencias de aprendizaje</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="text-xs text-[var(--muted)] block mb-1">Estilos de enfoque</label>
+            <div class="flex gap-2 flex-wrap">
+              <span class="chip chip-accent">Jazz</span>
+              <span class="chip chip-accent">Latino</span>
+              <span class="chip">Clásico</span>
+              <span class="chip">Pop</span>
+              <span class="chip">Cine</span>
+            </div>
+          </div>
+          <div>
+            <label class="text-xs text-[var(--muted)] block mb-1">Instrumento principal</label>
+            <select class="styled w-full"><option>Guitarra</option><option>Piano</option><option>Saxo</option><option>Voz</option><option>Otro</option></select>
+          </div>
+          <div>
+            <label class="text-xs text-[var(--muted)] block mb-1">Idioma de contenido</label>
+            <select class="styled w-full"><option>Español</option><option>Inglés</option><option>Portugués</option><option>Francés</option><option>Italiano</option></select>
+          </div>
+          <div>
+            <label class="text-xs text-[var(--muted)] block mb-1">Objetivo diario</label>
+            <select class="styled w-full"><option>15 min</option><option selected>25 min</option><option>45 min</option><option>60 min</option></select>
+          </div>
+          <div>
+            <label class="text-xs text-[var(--muted)] block mb-1">Notación</label>
+            <select class="styled w-full"><option>Inglés (C D E)</option><option selected>Latina (Do Re Mi)</option></select>
+          </div>
+          <div>
+            <label class="text-xs text-[var(--muted)] block mb-1">Solfeo</label>
+            <select class="styled w-full"><option>Fijo (Do = C)</option><option selected>Móvil (Do = tónica)</option></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card p-6">
+        <h3 class="font-bold mb-3">🏆 Logros</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div class="text-center p-3 rounded-lg" style="background:var(--bg2)">
+            <div class="text-3xl">🎯</div>
+            <div class="text-xs font-bold mt-2">Primer standard</div>
+            <div class="text-[10px] text-[var(--muted)]">Analizado completo</div>
+          </div>
+          <div class="text-center p-3 rounded-lg" style="background:var(--bg2)">
+            <div class="text-3xl">🔥</div>
+            <div class="text-xs font-bold mt-2">7 días</div>
+            <div class="text-[10px] text-[var(--muted)]">Streak</div>
+          </div>
+          <div class="text-center p-3 rounded-lg" style="background:var(--bg2)">
+            <div class="text-3xl">👂</div>
+            <div class="text-xs font-bold mt-2">Oído afilado</div>
+            <div class="text-[10px] text-[var(--muted)]">100 intervalos</div>
+          </div>
+          <div class="text-center p-3 rounded-lg" style="background:var(--bg2);opacity:.4">
+            <div class="text-3xl">🎼</div>
+            <div class="text-xs font-bold mt-2">Compositor</div>
+            <div class="text-[10px] text-[var(--muted)]">Bloqueado</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card p-6">
+        <h3 class="font-bold mb-3">💎 Constelaciones desbloqueadas</h3>
+        <div class="flex gap-3 flex-wrap">
+          <div class="chip chip-ok">✓ Diatónico básico</div>
+          <div class="chip chip-ok">✓ Séptimas y funciones</div>
+          <div class="chip chip-accent">◐ II–V–I (72%)</div>
+          <div class="chip">○ Cromático</div>
+          <div class="chip">○ Modal</div>
+          <div class="chip">○ Bebop</div>
+          <div class="chip">○ Reharm avanzada</div>
+          <div class="chip">○ Orquestación</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- Sidebar mobile backdrop -->
+<div id="sidebarBackdrop" class="hidden fixed inset-0 z-20 md:hidden" style="background:rgba(0,0,0,.6);backdrop-filter:blur(2px)"></div>
+
+<!-- ============ FLOATING INSTRUMENT WIDGET ============ -->
+<button id="fabInstrument" onclick="toggleFab()" title="Piano / Guitarra" aria-label="instrumento"
+  style="position:fixed;right:18px;bottom:18px;width:56px;height:56px;border-radius:28px;background:linear-gradient(135deg,#C77B2A,#E29A4F);border:0;color:#fff;font-size:1.6rem;box-shadow:0 6px 20px rgba(0,0,0,.4);cursor:pointer;z-index:40;transition:transform .15s">🎹</button>
+
+<div id="fabPanel" class="glass" style="display:none">
+  <div class="fab-toolbar">
+    <button class="btn btn-ghost" onclick="fabSetMode('piano')" id="fabTabPiano">🎹 Piano</button>
+    <button class="btn btn-ghost" onclick="fabSetMode('guitar')" id="fabTabGuitar">🎸 Guitarra</button>
+    <div style="flex:1;min-width:.5rem"></div>
+    <button class="btn btn-ghost" id="fabChordToggle" onclick="toggleChordMode()" title="Modo acorde (mantiene notas)">🎵 Sostener</button>
+    <button class="btn btn-ghost" id="fabOctaveBtn" onclick="toggleOctaves()" title="2 octavas">2×</button>
+    <button class="btn btn-ghost" onclick="toggleFab()" title="Cerrar">✕</button>
+  </div>
+  <div id="fabBody" style="padding:.5rem"></div>
+  <div class="fab-footer" style="padding:.3rem .7rem;background:var(--bg2);border-top:1px solid var(--line);font-size:.75rem;color:var(--muted);display:flex;justify-content:space-between;gap:.4rem;flex-wrap:wrap">
+    <div id="fabHint">Toca una nota. <b>Sostener</b> deja la nota sonando hasta que la sueltes.</div>
+    <div id="fabStatus"></div>
+  </div>
+  <!-- CONTROLES DE TEMPO Y COMPÁS -->
+  <div class="fab-footer" style="padding:.3rem .7rem;background:var(--bg2);border-top:1px solid var(--line);display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;font-size:.75rem">
+    <label style="color:var(--muted)">BPM</label>
+    <input id="fabBpm" type="number" min="40" max="240" value="100" class="styled" style="width:52px;padding:.15rem .3rem;font-size:.75rem;text-align:center" onchange="updateSequenceTimeInfo()">
+    <label style="color:var(--muted)">Compás</label>
+    <select id="fabTimeSig" class="styled" style="padding:.15rem .25rem;font-size:.72rem" onchange="updateSequenceTimeInfo()">
+      <option value="4">4/4</option><option value="3">3/4</option><option value="6">6/8</option><option value="5">5/4</option>
+    </select>
+    <label style="color:var(--muted)">Dur.</label>
+    <select id="fabBars" class="styled" style="padding:.15rem .25rem;font-size:.72rem" onchange="updateSequenceTimeInfo()">
+      <option value="0.25">¼</option>
+      <option value="0.5">½</option>
+      <option value="1" selected>1</option>
+      <option value="2">2</option>
+      <option value="4">4</option>
+    </select>
+    <span style="color:var(--muted)">comp</span>
+    <span id="fabDurInfo" style="color:var(--muted);margin-left:auto">1 comp = 2.4 s</span>
+  </div>
+  <!-- SECUENCIA DE ACORDES -->
+  <div class="fab-footer" style="padding:.35rem .7rem;background:var(--bg3);border-top:1px solid var(--line);display:flex;align-items:center;gap:.3rem;flex-wrap:wrap">
+    <button class="btn btn-accent" style="padding:.2rem .5rem;font-size:.75rem" onclick="fabCaptureChord()">⏺ Guardar</button>
+    <button class="btn btn-ghost" style="padding:.2rem .4rem;font-size:.75rem" onclick="fabPlaySequence()">▶ Play</button>
+    <button class="btn btn-ghost" style="padding:.2rem .4rem;font-size:.75rem" onclick="fabClearSequence()" title="Limpiar">🗑</button>
+    <button class="btn btn-primary" style="padding:.2rem .5rem;font-size:.75rem;margin-left:auto" onclick="fabAskTutor()">🤖 Tutor</button>
+  </div>
+  <div id="fabSeq" class="fab-footer" style="padding:.35rem .7rem;background:var(--bg3);border-top:1px solid var(--line);display:flex;align-items:center;gap:.3rem;flex-wrap:wrap;font-size:.78rem"></div>
+</div>
+
+<!-- INSTALL HELP MODAL -->
+<div id="installModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(5,10,25,.82);backdrop-filter:blur(8px)">
+  <div class="glass card p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto scrollbar relative">
+    <button class="absolute top-3 right-3 btn btn-ghost" onclick="closeInstallHelp()" aria-label="cerrar">✕</button>
+    <h2 class="text-2xl font-bold mb-1">📲 Instalar ARMONÍA en tu dispositivo</h2>
+    <p class="text-sm text-[var(--muted)] mb-5">Una vez instalada, ARMONÍA vive en tu pantalla de inicio como cualquier app, funciona offline, y se abre en su propia ventana sin barras del navegador.</p>
+
+    <div id="installTabs" class="flex gap-1 border-b border-[var(--line)] mb-4 overflow-x-auto scrollbar">
+      <button class="tab active" data-plat="ios">iPhone / iPad</button>
+      <button class="tab" data-plat="android">Android</button>
+      <button class="tab" data-plat="desktop">Computadora</button>
+    </div>
+
+    <div id="installIos" class="install-pane">
+      <div class="bg-[var(--bg2)] rounded-lg p-4 mb-3">
+        <div class="text-xs text-[var(--accent2)] font-bold mb-1">⚠️ REQUISITO</div>
+        <p class="text-sm">En iPhone y iPad solo <b>Safari</b> permite instalar PWAs. Chrome y Firefox en iOS usan Safari por debajo pero no muestran el menú de instalación — <b>debes abrir la app en Safari</b>.</p>
+      </div>
+      <ol class="space-y-3 text-sm">
+        <li class="flex gap-3"><span class="level-badge" style="width:32px;height:32px;font-size:.8rem">1</span><div>Abre el enlace de ARMONÍA en <b>Safari</b> (no en Chrome).</div></li>
+        <li class="flex gap-3"><span class="level-badge" style="width:32px;height:32px;font-size:.8rem">2</span><div>Pulsa el botón <b>Compartir</b> <span class="kbd">􀈂</span> en la parte inferior (o superior en iPad).</div></li>
+        <li class="flex gap-3"><span class="level-badge" style="width:32px;height:32px;font-size:.8rem">3</span><div>Desliza hacia abajo y elige <b>"Añadir a pantalla de inicio"</b> / "Add to Home Screen".</div></li>
+        <li class="flex gap-3"><span class="level-badge" style="width:32px;height:32px;font-size:.8rem">4</span><div>Confirma el nombre (ARMONÍA) y pulsa <b>Añadir</b>.</div></li>
+        <li class="flex gap-3"><span class="level-badge" style="width:32px;height:32px;font-size:.8rem">5</span><div>Abre ARMONÍA desde el ícono nuevo — ya es una app independiente. Autoriza micrófono y audio la primera vez.</div></li>
+      </ol>
+    </div>
+
+    <div id="installAndroid" class="install-pane hidden">
+      <ol class="space-y-3 text-sm">
+        <li class="flex gap-3"><span class="level-badge" style="width:32px;height:32px;font-size:.8rem">1</span><div>Abre ARMONÍA en <b>Chrome</b>, <b>Edge</b> o <b>Samsung Internet</b>.</div></li>
+        <li class="flex gap-3"><span class="level-badge" style="width:32px;height:32px;font-size:.8rem">2</span><div>Verás un banner "Instalar" o un botón 📲 Instalar en la barra superior de la app. <b>Púlsalo.</b></div></li>
+        <li class="flex gap-3"><span class="level-badge" style="width:32px;height:32px;font-size:.8rem">3</span><div>Si no aparece: toca el menú <b>⋮</b> de Chrome → <b>Instalar app</b> / "Add to Home screen".</div></li>
+        <li class="flex gap-3"><span class="level-badge" style="width:32px;height:32px;font-size:.8rem">4</span><div>Confirma. ARMONÍA queda en tu lanzador de apps como una app nativa.</div></li>
+        <li class="flex gap-3"><span class="level-badge" style="width:32px;height:32px;font-size:.8rem">5</span><div>En Firefox Android: menú ⋮ → <b>Instalar</b>. Funciona igual.</div></li>
+      </ol>
+      <div class="bg-[var(--bg2)] rounded-lg p-3 mt-4 text-sm">
+        <b>💡 Tip:</b> En Android, el ícono tendrá los atajos rápidos (Lección, Tutor IA, Ear training, Mapa de maestría) — mantén pulsado el ícono en el launcher.
+      </div>
+    </div>
+
+    <div id="installDesktop" class="install-pane hidden">
+      <ol class="space-y-3 text-sm">
+        <li class="flex gap-3"><span class="level-badge" style="width:32px;height:32px;font-size:.8rem">1</span><div>En <b>Chrome / Edge / Brave</b>: busca el icono <b>⊕</b> al final de la barra de direcciones, o usa el botón <b>📲 Instalar app</b> en la esquina superior de ARMONÍA.</div></li>
+        <li class="flex gap-3"><span class="level-badge" style="width:32px;height:32px;font-size:.8rem">2</span><div>Confirma "Instalar". La app aparecerá en el Dock (macOS), el menú Inicio (Windows) o el menú de apps (Linux/ChromeOS).</div></li>
+        <li class="flex gap-3"><span class="level-badge" style="width:32px;height:32px;font-size:.8rem">3</span><div>En <b>Safari macOS</b>: menú <b>Archivo → Añadir al Dock</b>.</div></li>
+        <li class="flex gap-3"><span class="level-badge" style="width:32px;height:32px;font-size:.8rem">4</span><div>Firefox no soporta instalación PWA directa en escritorio — usa Chrome o Edge.</div></li>
+      </ol>
+    </div>
+
+    <div class="divider"></div>
+
+    <h3 class="font-bold mb-2">🎤 Permisos necesarios en móvil</h3>
+    <ul class="text-sm space-y-1 text-[var(--muted)] mb-4">
+      <li>• <b>Micrófono</b> — para cantar, tocar melodías, responder en ear training.</li>
+      <li>• <b>Audio</b> — iOS requiere un toque del usuario antes de reproducir sonido la primera vez.</li>
+      <li>• <b>Almacenamiento local</b> — para guardar chats, progreso y lecciones offline.</li>
+      <li>• <b>Notificaciones (opcional)</b> — recordatorios diarios de práctica.</li>
+    </ul>
+
+    <h3 class="font-bold mb-2">✅ Qué funciona en el teléfono</h3>
+    <div class="grid grid-cols-2 gap-2 text-sm mb-4">
+      <div class="flex gap-2 items-start"><span class="text-[var(--ok)]">✓</span><span>Todas las 10 pantallas</span></div>
+      <div class="flex gap-2 items-start"><span class="text-[var(--ok)]">✓</span><span>Audio (piano, acordes, backings)</span></div>
+      <div class="flex gap-2 items-start"><span class="text-[var(--ok)]">✓</span><span>Micrófono (voz, melodías)</span></div>
+      <div class="flex gap-2 items-start"><span class="text-[var(--ok)]">✓</span><span>Teclado interactivo táctil</span></div>
+      <div class="flex gap-2 items-start"><span class="text-[var(--ok)]">✓</span><span>Ear training completo</span></div>
+      <div class="flex gap-2 items-start"><span class="text-[var(--ok)]">✓</span><span>Tutor IA con historial</span></div>
+      <div class="flex gap-2 items-start"><span class="text-[var(--ok)]">✓</span><span>Análisis de canciones</span></div>
+      <div class="flex gap-2 items-start"><span class="text-[var(--ok)]">✓</span><span>Funciona offline tras la 1a carga</span></div>
+      <div class="flex gap-2 items-start"><span class="text-[var(--ok)]">✓</span><span>5 idiomas, 5 estilos</span></div>
+      <div class="flex gap-2 items-start"><span class="text-[var(--ok)]">✓</span><span>Progreso local persistente</span></div>
+    </div>
+
+    <div class="bg-[var(--bg2)] rounded-lg p-3 text-sm">
+      <b>⚠️ Nota:</b> Para que funcione el Service Worker (offline + instalación) necesitas servir el HTML desde un servidor web — no desde <span class="kbd">file://</span>. La forma más rápida: subirlo a Netlify/Vercel/Cloudflare Pages (arrastrar la carpeta, gratis), o usar el script <span class="kbd">servir.command</span> en tu Mac.
+    </div>
+
+    <div class="flex gap-2 mt-5">
+      <button class="btn btn-primary" onclick="closeInstallHelp()">Entendido</button>
+      <button class="btn btn-ghost" onclick="copyUrl()">📋 Copiar URL actual</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SCRIPTS ============ -->
+<script>
+// ============ I18N ============
+const I18N = {
+  es:{"nav.home":"Inicio","nav.curriculum":"Currículo","nav.lesson":"Lección de hoy","nav.tutor":"Tutor IA","nav.ear":"Ear training","nav.analysis":"Análisis de canciones","nav.mastery":"Mapa de maestría","nav.library":"Biblioteca","nav.pricing":"Planes","nav.profile":"Perfil","sidebar.progress":"Progreso general","sidebar.level":"Nivel","home.title":"Bienvenido a ARMONÍA","home.sub":"Aprende armonía, arreglos y composición a profundidad — con tu estilo","ear.title":"¿Qué intervalo escuchas?"},
+  en:{"nav.home":"Home","nav.curriculum":"Curriculum","nav.lesson":"Today's lesson","nav.tutor":"AI Tutor","nav.ear":"Ear training","nav.analysis":"Song analysis","nav.mastery":"Mastery map","nav.library":"Library","nav.pricing":"Plans","nav.profile":"Profile","sidebar.progress":"Overall progress","sidebar.level":"Level","home.title":"Welcome to ARMONÍA","home.sub":"Learn harmony, arranging, composition — in depth, in your style","ear.title":"What interval do you hear?"},
+  pt:{"nav.home":"Início","nav.curriculum":"Currículo","nav.lesson":"Lição de hoje","nav.tutor":"Tutor IA","nav.ear":"Ouvido","nav.analysis":"Análise de canções","nav.mastery":"Mapa de maestria","nav.library":"Biblioteca","nav.pricing":"Planos","nav.profile":"Perfil","sidebar.progress":"Progresso geral","sidebar.level":"Nível","home.title":"Bem-vindo à ARMONÍA","home.sub":"Aprenda harmonia, arranjos e composição com profundidade — no seu estilo","ear.title":"Qual intervalo você ouve?"},
+  fr:{"nav.home":"Accueil","nav.curriculum":"Cursus","nav.lesson":"Leçon du jour","nav.tutor":"Tuteur IA","nav.ear":"Oreille","nav.analysis":"Analyse de chansons","nav.mastery":"Carte de maîtrise","nav.library":"Bibliothèque","nav.pricing":"Offres","nav.profile":"Profil","sidebar.progress":"Progression globale","sidebar.level":"Niveau","home.title":"Bienvenue dans ARMONÍA","home.sub":"Apprenez l'harmonie, l'arrangement, la composition — en profondeur","ear.title":"Quel intervalle entendez-vous ?"},
+  it:{"nav.home":"Home","nav.curriculum":"Programma","nav.lesson":"Lezione di oggi","nav.tutor":"Tutor IA","nav.ear":"Orecchio","nav.analysis":"Analisi di canzoni","nav.mastery":"Mappa di padronanza","nav.library":"Biblioteca","nav.pricing":"Piani","nav.profile":"Profilo","sidebar.progress":"Progresso generale","sidebar.level":"Livello","home.title":"Benvenuto in ARMONÍA","home.sub":"Impara armonia, arrangiamento, composizione — in profondità","ear.title":"Quale intervallo senti?"},
+};
+let LANG="es";
+function applyI18n(){document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(I18N[LANG][k])el.textContent=I18N[LANG][k]})}
+document.getElementById('langSelect').addEventListener('change',e=>{LANG=e.target.value;applyI18n()});
+
+// ============ ROUTER ============
+const ROUTES=['home','curriculum','lesson','tutor','ear','analysis','mastery','library','pricing','profile'];
+const TITLES={
+  home:{t:"Bienvenido a ARMONÍA",s:"Aprende armonía, arreglos y composición a profundidad"},
+  curriculum:{t:"Currículo completo",s:"6 niveles · 58 módulos · 340+ lecciones · con tu estilo preferido"},
+  lesson:{t:"Lección",s:"Teoría + audio + interactividad"},
+  tutor:{t:"Tutor IA",s:"Conversa sobre cualquier partitura, acorde o idea"},
+  ear:{t:"Ear training",s:"Tu oído se construye aquí"},
+  analysis:{t:"Análisis de canciones",s:"Entiende por qué una canción suena como suena"},
+  mastery:{t:"Mapa de maestría",s:"Tu árbol real de habilidades"},
+  library:{t:"Biblioteca",s:"300+ canciones analizadas, con audio y partitura"},
+  pricing:{t:"Planes",s:"Elige el tier que se adapta a ti"},
+  profile:{t:"Perfil",s:"Tu aprendizaje, tu estilo, tus objetivos"}
+};
+const HISTORY=[];let currentRoute='home';
+function route(r,push=true){
+  if(!ROUTES.includes(r))return;
+  ROUTES.forEach(id=>document.getElementById(id).classList.add('hidden-section'));
+  document.getElementById(r).classList.remove('hidden-section');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.route===r));
+  const tt=TITLES[r];if(tt){document.getElementById('pageTitle').textContent=tt.t;document.getElementById('pageSub').textContent=tt.s}
+  window.scrollTo(0,0);
+  if(push && currentRoute!==r)HISTORY.push(currentRoute);
+  currentRoute=r;
+  document.getElementById('backBtn').classList.toggle('hidden',HISTORY.length===0);
+  // close mobile sidebar
+  if(window.innerWidth<768){document.getElementById('sidebar').classList.add('hide-mobile');document.getElementById('sidebarBackdrop').classList.add('hidden')}
+  if(r==='curriculum')renderCurriculum();
+  if(r==='mastery')renderMasteryTree();
+  if(r==='library')renderLibrary();
+  if(r==='lesson'&&!pianoBuilt)buildPiano();
+  if(r==='tutor'){ensureChat();renderChatList();renderChatMessages()}
+}
+function goBack(){
+  if(HISTORY.length===0)return;
+  const prev=HISTORY.pop();
+  route(prev,false);
+  document.getElementById('backBtn').classList.toggle('hidden',HISTORY.length===0);
+}
+document.getElementById('backBtn').addEventListener('click',goBack);
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    // close modals first
+    const im=document.getElementById('installModal');
+    if(!im.classList.contains('hidden')){closeInstallHelp();return}
+    if(!document.getElementById('tutorMicPanel').classList.contains('hidden')){cancelMic();return}
+    if(!document.getElementById('sidebar').classList.contains('hide-mobile')&&window.innerWidth<768){
+      document.getElementById('sidebar').classList.add('hide-mobile');
+      document.getElementById('sidebarBackdrop').classList.add('hidden');return;
+    }
+    goBack();
+  }
+});
+document.querySelectorAll('.nav-item').forEach(n=>n.addEventListener('click',()=>route(n.dataset.route)));
+
+// ============ AUDIO ENGINE ============
+let synth,started=false,pianoBuilt=false;
+async function ensureAudio(){
+  if(!started){await Tone.start();started=true}
+  if(!synth){
+    synth=new Tone.PolySynth(Tone.Synth,{
+      oscillator:{type:"triangle8"},
+      envelope:{attack:.02,decay:.15,sustain:.5,release:.9}
+    }).toDestination();
+    synth.volume.value=-6;
+  }
+}
+const NOTE_MAP=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+function midiToName(m){return NOTE_MAP[m%12]+Math.floor(m/12-1)}
+
+// Chord definitions (semitones from root)
+const CHORDS={
+  "M":[0,4,7],"m":[0,3,7],"dim":[0,3,6],"aug":[0,4,8],
+  "7":[0,4,7,10],"M7":[0,4,7,11],"m7":[0,3,7,10],"m7b5":[0,3,6,10],"dim7":[0,3,6,9],
+  "mM7":[0,3,7,11],"7b9":[0,4,7,10,13],"7#9":[0,4,7,10,15],"7alt":[0,4,10,13,15],"sus4":[0,5,7],"7sus4":[0,5,7,10],
+  "9":[0,4,7,10,14],"M9":[0,4,7,11,14],"m9":[0,3,7,10,14],"13":[0,4,7,10,14,21]
+};
+const ROOTS={"C":60,"C#":61,"Db":61,"D":62,"D#":63,"Eb":63,"E":64,"F":65,"F#":66,"Gb":66,"G":67,"G#":68,"Ab":68,"A":69,"A#":70,"Bb":70,"B":71};
+
+function parseChord(sym){
+  const m=sym.replace(/♭/g,'b').replace(/♯/g,'#').match(/^([A-G][b#]?)(.*)$/);
+  if(!m)return null;
+  const root=ROOTS[m[1]];let q=m[2]||"M";
+  // normalize
+  if(q==="")q="M";
+  if(q==="maj7"||q==="Δ")q="M7";
+  if(q==="min"||q==="-")q="m";
+  if(q==="min7"||q==="-7")q="m7";
+  if(q==="ø"||q==="m7♭5")q="m7b5";
+  if(!CHORDS[q]){
+    // try common variants
+    if(q.startsWith("maj7"))q="M7";
+    else if(q==="alt")q="7alt";
+  }
+  const ivs=CHORDS[q]||CHORDS["M"];
+  return ivs.map(i=>midiToName(root+i));
+}
+
+async function playChord(sym,dur="2n"){
+  await ensureAudio();
+  const notes=parseChord(sym);
+  if(notes)synth.triggerAttackRelease(notes,dur);
+}
+async function playProgression(syms,slow=false){
+  await ensureAudio();
+  const t=Tone.now();
+  const beatDur=slow?1.6:.8;
+  syms.forEach((s,i)=>{
+    const notes=parseChord(s);
+    if(notes)synth.triggerAttackRelease(notes,beatDur*.95,t+i*beatDur);
+  });
+}
+async function playStyleDemo(style){
+  await ensureAudio();
+  const info=document.getElementById('styleDemoInfo');
+  const map={
+    classical:{notes:["G4","B4","D5","F5","Ab4"],text:"🎻 V7♭9 clásico — resolución estricta, voicing cerrado"},
+    jazz:{notes:["F4","B4","E5","Ab5","Db5"],text:"🎷 V7alt con upper-structure triad — Db sobre G7"},
+    pop:{notes:["G3","C4","D4","G4"],text:"🎤 V7sus4 pop — sin tritono, color suspendido"},
+    latin:{notes:["G3","B3","F4","Ab4","Eb5"],text:"🥁 V7♭9♭13 latino — clave implícita, tensión alta"},
+    film:{notes:["G2","G3","B4","F5","Ab5"],text:"🎬 V7♭9 con pedal de G2 — dramatismo épico"}
+  };
+  const d=map[style];
+  synth.triggerAttackRelease(d.notes,"2n");
+  info.textContent=d.text;
+}
+
+// ============ PIANO ============
+function buildPiano(){
+  const p=document.getElementById('piano');if(!p)return;
+  p.innerHTML='';
+  const whites=[{n:"C",k:"A"},{n:"D",k:"S"},{n:"E",k:"D"},{n:"F",k:"F"},{n:"G",k:"G"},{n:"A",k:"H"},{n:"B",k:"J"}];
+  const blacks=[{n:"C#",pos:30,k:"W"},{n:"D#",pos:74,k:"E"},null,{n:"F#",pos:162,k:"T"},{n:"G#",pos:206,k:"Y"},{n:"A#",pos:250,k:"U"}];
+  whites.forEach((w,i)=>{
+    const el=document.createElement('div');
+    el.className='key key-white';
+    el.style.left=(i*44)+'px';el.style.position='absolute';
+    el.dataset.note=w.n+"4";
+    el.innerHTML=`<div class="key-label">${w.n}<br><small>${w.k}</small></div>`;
+    el.onclick=()=>pianoPress(el);
+    p.appendChild(el);
+  });
+  blacks.forEach((b,i)=>{
+    if(!b)return;
+    const el=document.createElement('div');
+    el.className='key key-black';
+    el.style.left=b.pos+'px';el.dataset.note=b.n+"4";
+    el.innerHTML=`<div class="key-label"><small>${b.k}</small></div>`;
+    el.onclick=()=>pianoPress(el);
+    p.appendChild(el);
+  });
+  pianoBuilt=true;
+  // keyboard input
+  const keyMap={a:"C4",w:"C#4",s:"D4",e:"D#4",d:"E4",f:"F4",t:"F#4",g:"G4",y:"G#4",h:"A4",u:"A#4",j:"B4"};
+  document.addEventListener('keydown',e=>{
+    if(document.getElementById('lesson').classList.contains('hidden-section'))return;
+    const n=keyMap[e.key.toLowerCase()];if(!n||e.repeat)return;
+    const el=p.querySelector(`[data-note="${n}"]`);if(el)pianoPress(el);
+  });
+}
+const pianoNotes=new Set();
+async function pianoPress(el){
+  await ensureAudio();
+  const n=el.dataset.note;
+  el.classList.add('active');
+  synth.triggerAttackRelease(n,"4n");
+  pianoNotes.add(n);
+  document.getElementById('pianoNote').textContent=n.replace("#","♯");
+  detectChord();
+  setTimeout(()=>{el.classList.remove('active');pianoNotes.delete(n);if(pianoNotes.size===0)document.getElementById('pianoChord').textContent="Toca más notas para detectar acorde"},800);
+}
+function detectChord(){
+  if(pianoNotes.size<2){document.getElementById('pianoChord').textContent="Toca acordes (2-4 notas)";return}
+  const pcs=[...pianoNotes].map(n=>ROOTS[n.replace(/\d/,'')]%12).sort((a,b)=>a-b);
+  const uniq=[...new Set(pcs)];
+  // try each as root
+  for(const root of uniq){
+    const ivs=uniq.map(p=>(p-root+12)%12).sort((a,b)=>a-b);
+    const rn=NOTE_MAP[root];
+    if(ivs.join()==="0,4,7"){document.getElementById('pianoChord').textContent=`${rn} mayor`;return}
+    if(ivs.join()==="0,3,7"){document.getElementById('pianoChord').textContent=`${rn} menor`;return}
+    if(ivs.join()==="0,4,7,11"){document.getElementById('pianoChord').textContent=`${rn}maj7`;return}
+    if(ivs.join()==="0,4,7,10"){document.getElementById('pianoChord').textContent=`${rn}7 (dominante)`;return}
+    if(ivs.join()==="0,3,7,10"){document.getElementById('pianoChord').textContent=`${rn}m7`;return}
+    if(ivs.join()==="0,3,6,10"){document.getElementById('pianoChord').textContent=`${rn}m7♭5 (semi-dim)`;return}
+    if(ivs.join()==="0,3,6"){document.getElementById('pianoChord').textContent=`${rn}°`;return}
+    if(ivs.join()==="0,4,8"){document.getElementById('pianoChord').textContent=`${rn}+ (aumentado)`;return}
+    if(ivs.join()==="0,5,7"){document.getElementById('pianoChord').textContent=`${rn}sus4`;return}
+  }
+  document.getElementById('pianoChord').textContent="Sonoridad inusual — prueba otra combinación";
+}
+
+// Chord pills click
+document.addEventListener('click',e=>{
+  const t=e.target.closest('.chord-pill');
+  if(t&&t.textContent){const c=t.textContent.trim().replace(/\s/g,'');playChord(c,"2n")}
+});
+
+// ============ QUIZ ============
+function playQuizClip(){playProgression(['Fmaj7','G7','Cmaj7'])}
+function answerQuiz(el,correct){
+  const fb=document.getElementById('quizFeedback');
+  document.querySelectorAll('#quizOptions button').forEach(b=>b.disabled=true);
+  if(correct){el.style.background="rgba(76,175,142,.3)";fb.innerHTML="✅ <b>¡Correcto!</b> G7 funciona como V7/V (V7 de C) porque tonifica momentáneamente a C como una nueva tónica, aunque en realidad estamos en F. Este es un recurso clásico en songwriting y jazz.";fb.style.color="var(--ok)"}
+  else{el.style.background="rgba(224,96,96,.3)";fb.innerHTML="❌ No exactamente. Escucha: después de Fmaj7 viene un G7 que resuelve a Cmaj7. G7 es V7 del C (dominante de V en la escala de F). Es <b>V7/V</b>.";fb.style.color="var(--err)"}
+}
+
+// ============ TUTOR IA ============
+const TUTOR_RESPONSES=[
+  {match:/por qu[eé]|funciona|resuelve/i,reply:`Buena pregunta. <b>E♭7</b> en el compás 3 es el V7 del A♭, y resuelve a A♭maj7 en el compás 4 — es un <b>ii–V–I en A♭ mayor</b> (B♭m7 – E♭7 – A♭maj7). Pero la magia está en que el compás 1 empieza en <b>Fm7</b>, que es el vi de A♭: toda esa sección vive dentro de la tonalidad de A♭ aunque Kern la camufla. Escucha cómo la melodía acentúa la nota de guía 3-7 en cada acorde.<br><br>¿Quieres que te muestre los 4 compases con las notas de guía resaltadas?`},
+  {match:/sustituci[oó]n|reharm|bill evans/i,reply:`Bill Evans solía usar tres recursos aquí:<br><br><b>1.</b> <i>Tritono sub:</i> cambiar F7 por B7 — misma 3a/7a (A♯/E), bajo cromático C→B→B♭.<br><b>2.</b> <i>Backdoor:</i> A♭7 antes de B♭maj7 — crea una falsa resolución que suena 60s.<br><b>3.</b> <i>Constant structure:</i> descender en paralelo con acordes maj7 (Bmaj7 – B♭maj7 – Amaj7) para cromatismo superficial.<br><br>¿Te genero un ejercicio en el que tengas que identificar cuál usó Evans en 10 pasajes diferentes?`},
+  {match:/ejercicio|practic|drill/i,reply:`Perfecto. Te propongo tres niveles:<br><br>🟢 <b>Nivel básico</b> · Toca la progresión Cm7 – F7 – B♭maj7 en las 12 tonalidades al piano. Solo tríadas con séptima, tempo libre.<br>🟡 <b>Nivel intermedio</b> · Compón un chorus de improvisación sobre los 8 compases del A1 de Autumn Leaves usando <i>solo</i> notas de guía (3 y 7).<br>🔴 <b>Nivel pro</b> · Reharmoniza el A1 con al menos 3 sustituciones distintas y graba un audio de 30s. Puedo revisarlo.<br><br>¿Con cuál empezamos?`},
+  {match:/flamenco|gitano|and[aá]luc[íi]|frigia|frigio/i,reply:`Excelente instinto. En flamenco la lógica es completamente distinta: en vez de <b>ii–V–I</b>, el centro tonal es <b>frigio mayor</b> (modo sobre la 5a) con la <b>cadencia andaluza</b> Am – G – F – E. Ese E7 final no es un dominante secundario: es la <b>tónica modal</b> con su característica 3a mayor.<br><br>Si quisieras mover "Autumn Leaves" al lenguaje flamenco, lo típico sería reinterpretar Am7♭5 – D7 – Gm como Bm – A – G – F♯ (por fandangos). ¿Te armo el ejemplo con audio?`},
+  {match:/negative harmony|negativa|collier/i,reply:`Negative harmony (Ernst Levy, popularizado por Jacob Collier) invierte cada acorde alrededor del eje entre la tónica y la 5a. En Gm, el eje está entre D y A♭.<br><br>Aplicado a Autumn Leaves A1:<br>• Cm7 → Fm6<br>• F7 → B♭m6(♭5)<br>• B♭maj7 → E♭m6<br>• E♭maj7 → A♭m6<br>• D7 → G♭maj7<br>• Gm → B♭<br><br>Suena alienígena pero coherente. ¿Quieres que lo reproduzca?`},
+  {match:/backing|play|tempo/i,reply:`Listo — te preparo un backing estilo bossa en tempo 120 BPM sobre los 8 compases del A1. Duración: 4 choruses (2 min). Puedes practicar: (a) tocando la melodía, (b) improvisando sobre los cambios originales, (c) improvisando sobre tu reharm.<br><br>¿Con batería + bajo + piano, o sólo batería + bajo (para que tú hagas piano)?`},
+  {match:/analiz|compases 5|compases 6|compases 7|compases 8|analiza/i,reply:`Compases 5-8 de <i>All the Things You Are</i> (Kern):<br><br><b>C.5</b> · Dm7 (ii de C)<br><b>C.6</b> · G7 (V7 de C)<br><b>C.7</b> · Cmaj7 (I en C mayor — <b>modulación desde A♭</b>)<br><b>C.8</b> · Cmaj7 (confirmación)<br><br>Kern modula de A♭ a C por <b>mediante cromática</b>: C está una tercera mayor debajo de A♭. Es una modulación <i>sonorita y abrupta</i> que define la pieza. Después vuelve a A♭ por el círculo de quintas en el B. ¡Una obra maestra de la construcción tonal!<br><br>¿Te interesa cómo suena si lo reharmonizas con Coltrane changes?`},
+  {match:/.*/,reply:`Puedo ayudarte a: <br>• Analizar cualquier partitura o audio que subas (📎)<br>• Explicar por qué un acorde funciona en un contexto<br>• Proponerte sustituciones y reharmonizaciones<br>• Generar ejercicios a tu nivel<br>• Compararlo con cómo se haría en otro estilo (clásico, jazz, pop, latino, cine)<br>• Darte backings para practicar<br><br>¿Qué te interesa explorar?`}
+];
+// ============ TUTOR IA — CONFIGURACIÓN ============
+// Usa el MISMO Cloudflare Worker que Moon Sync, Khloe's Moon y AstroAtlas.
+// No hace falta crear worker nuevo — naguall.github.io ya está en ALLOWED_ORIGINS.
+// Si algún día hay que mover a otro worker, cambia solo esta línea:
+const AI_PROXY_URL = 'https://moon-sync-ai.bearman-ux.workers.dev';
+const USE_REAL_AI = true; // pon a false para forzar modo guionado (debug)
+
+function tutorReply(text){
+  for(const r of TUTOR_RESPONSES){if(r.match.test(text))return r.reply}
+  return TUTOR_RESPONSES[TUTOR_RESPONSES.length-1].reply;
+}
+
+// ============ PERSONA: PROFESOR DE ARMONÍA ============
+function buildSystemPrompt(){
+  const style = document.getElementById('styleSelect').value;
+  const styleLabels = {classical:'clásico tonal',jazz:'jazz',pop:'pop / rock / neo-soul',latin:'latino / afrocubano / flamenco / tango',film:'música de cine'};
+  const styleExamples = {
+    classical:'Bach (chorales), Mozart (sonatas), Beethoven, Chopin, Brahms, Debussy, Ravel',
+    jazz:'Wayne Shorter, Bill Evans, Herbie Hancock, Mark Levine, Jerry Bergonzi, Kurt Rosenwinkel',
+    pop:'Beatles, Radiohead, Stevie Wonder, Jacob Collier, Steely Dan, D\'Angelo',
+    latin:'Jobim, Chick Corea, Piazzolla, Paco de Lucía, Héctor Lavoe, Hermeto Pascoal',
+    film:'John Williams, Bernard Herrmann, Hans Zimmer, Ennio Morricone, Jerry Goldsmith'
+  };
+  const langMap={es:'español',en:'English',pt:'português brasileiro',fr:'français',it:'italiano'};
+  return `Eres el TUTOR DE ARMONÍA. Un profesor de conservatorio (nivel Berklee / Manhattan School / ESMUC) adaptado a app móvil.
+
+MARCO PEDAGÓGICO
+Enseñas armonía, arreglos y composición con profundidad profesional. Tu usuario es un músico intermedio-avanzado (ya conoce triadas, séptimas, II-V-I básico). No le expliques lo que ya sabe; si dudas, pregúntale primero.
+Ensenas oído primero, teoría después. Todo concepto se ilustra con UNA canción real del estilo que prefiere el usuario.
+Respetas los mitos de la armonía (p.ej. "las quintas paralelas siempre están mal") — los señalas y explicas cuándo el "mito" aplica y cuándo no.
+
+ESTILO ACTIVO DEL USUARIO: ${styleLabels[style]||'jazz'}
+Adapta TODOS tus ejemplos a este estilo. Artistas de referencia: ${styleExamples[style]||''}.
+
+IDIOMA: responde SIEMPRE en ${langMap[LANG]||'español'}.
+
+═══ CÓMO HABLAR ═══
+Cálido, directo, sin relleno. Técnico pero accesible. Preciso con los grados, cifrados y compases. Puedes ser brevemente gracioso, pero nunca condescendiente.
+Longitud de respuesta: 120-280 palabras. Extiéndete solo si el usuario pide profundidad explícita.
+Formato HTML: usa <b>, <i>, <br>, listas con "• ". NO uses markdown (no ** ni #).
+
+═══ REPRODUCIR ACORDES ═══
+Cuando menciones una progresión que la app puede tocar, la incluyes en este formato EXACTO al final de la oración correspondiente:
+[PLAY:Cm7,F7,Bbmaj7,Ebmaj7]
+La app lo convierte en botón clicable. Cada acorde: nombre + calidad simple (m7, 7, maj7, 7alt, m7b5, dim, sus4, 9, 13). Usa B♭ como Bb, F♯ como F#.
+
+═══ PROHIBIDO ═══
+• No uses el nombre del usuario.
+• No digas "deberías", "es un buen momento para", "confía en tu proceso", "todo va a fluir".
+• No frases genéricas tipo "la música es un viaje", "deja que la armonía te hable".
+• No más de 2 emojis por respuesta.
+• No repetir la misma idea con palabras distintas.
+• No invocar autores/obras que no conoces con certeza. Si no estás seguro: "no tengo certeza sobre ese pasaje específico, ¿tienes la referencia exacta?".
+• No terminar con cierres motivacionales.
+
+═══ OBLIGATORIO ═══
+• Cita grados romanos y/o cifrado cuando analices. Ej: "ii–V7–I en B♭ mayor" o "F♯m7♭5 – B7alt – Em7".
+• Cuando propongas un ejercicio, especifica: duración aprox, qué se práctica, cómo medir si salió bien.
+• Cuando menciones un fragmento de pieza, cita compases: <i>All the Things You Are</i>, c. 1-4.
+• Si el usuario pregunta algo del estilo actual: muestra cómo se haría en ese estilo. Si pregunta comparando estilos: contrasta con precisión.
+• Si el tema excede el nivel del usuario, adviértelo y ofrece un peldaño intermedio.
+
+CONTEXTO DEL USUARIO
+- Lección abierta: Dominantes secundarios — tonicización V7/X
+- Partitura en pantalla: All the Things You Are (Kern, 1939)
+- Nivel: Intermedio-avanzado
+- Estilo preferido: ${styleLabels[style]||'jazz'}`;
+}
+
+// Gemini via moon-sync proxy — formato simple que las otras apps del mismo proxy usan
+async function tutorReplyAI(userText){
+  const c = activeChat();
+  // Historial resumido en UN solo mensaje (patrón moon-sync)
+  const history = (c?.messages || [])
+    .slice(-8)
+    .filter(m => !m.audioUrl && m.text)
+    .map(m => (m.who === 'user' ? 'Usuario' : 'Tutor') + ': ' + m.text.replace(/<[^>]+>/g,''))
+    .join('\n\n');
+
+  const systemPrompt = buildSystemPrompt();
+  const fullPrompt = systemPrompt +
+    (history ? '\n\n═══ CONVERSACIÓN PREVIA ═══\n' + history : '') +
+    '\n\n═══ PREGUNTA ACTUAL ═══\n' + userText +
+    '\n\n(Responde siguiendo las reglas de arriba. 150-280 palabras.)';
+
+  const body = {
+    contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
+    generationConfig: {
+      temperature: 0.8,
+      maxOutputTokens: 1024
+    }
+  };
+
+  try{
+    const r = await fetch(AI_PROXY_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+    const data = await r.json();
+    console.log('[Tutor] response', r.status, data);
+
+    if(!r.ok){
+      const errMsg = data?.error?.message || data?.error || JSON.stringify(data);
+      return '⚠️ <b>Error '+r.status+':</b> '+escapeHtml(String(errMsg)).slice(0,200)+
+        '<br><br><i>Mientras tanto respondo con guion:</i><br>'+tutorReply(userText);
+    }
+    let text = '';
+    try{ text = data.candidates[0].content.parts[0].text; }
+    catch(e){
+      // Bloqueo de seguridad?
+      if(data.candidates?.[0]?.finishReason){
+        text = '⚠️ El modelo bloqueó la respuesta ('+data.candidates[0].finishReason+'). '+tutorReply(userText);
+      } else {
+        text = '⚠️ Respuesta vacía del modelo. '+tutorReply(userText);
+      }
+    }
+    // [PLAY:…] → botón
+    text = text.replace(/\[PLAY:([^\]]+)\]/g, (_,chords)=>{
+      const arr = chords.split(',').map(s=>s.trim()).filter(Boolean);
+      return `<button class="chord-pill" style="margin:.3rem 0" onclick='playProgression(${JSON.stringify(arr)})'>▶ ${arr.join(' · ')}</button>`;
+    });
+    // Convertir markdown básico
+    text = text.replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/\*([^*]+)\*/g,'<i>$1</i>');
+    if(!text.includes('<br>')) text = text.replace(/\n/g,'<br>');
+    return text;
+  }catch(e){
+    console.error('[Tutor] fetch error', e);
+    return '⚠️ <b>No pude contactar al tutor:</b> '+escapeHtml(e.message)+
+      '<br><small>Revisa conexión. Mientras tanto guion:</small><br>'+tutorReply(userText);
+  }
+}
+
+// ============ CHAT PERSISTENCE ============
+const CHAT_KEY='armonia_chats_v1';
+let chats=[];
+let activeChatId=null;
+try{chats=JSON.parse(localStorage.getItem(CHAT_KEY)||'[]')}catch(e){chats=[]}
+function saveChats(){try{localStorage.setItem(CHAT_KEY,JSON.stringify(chats))}catch(e){console.warn('no storage',e)}}
+function ensureChat(){
+  if(!chats.length){
+    newChat(false);
+    // welcome message
+    activeChat().messages.push({text:"¡Hola! Veo que estás en la lección de <b>dominantes secundarios</b> con la partitura de <i>All the Things You Are</i>. ¿Qué te gustaría entender mejor? Puedo analizar cualquier compás, proponerte ejercicios, comparar cómo se trata este recurso en distintos estilos o escucharte cantar una melodía.",who:'ai',ts:Date.now()});
+    saveChats();
+  }else if(!activeChatId){activeChatId=chats[0].id}
+}
+function newChat(render=true){
+  const c={id:'c'+Date.now()+Math.random().toString(36).slice(2,6),title:'Nueva conversación',messages:[],ts:Date.now(),context:{lesson:'Dominantes secundarios',score:'All the Things You Are',style:document.getElementById('styleSelect').value}};
+  chats.unshift(c);activeChatId=c.id;saveChats();
+  if(render){renderChatList();renderChatMessages();setTimeout(()=>document.getElementById('chatTitleInput').focus(),100)}
+}
+function activeChat(){return chats.find(c=>c.id===activeChatId)}
+function loadChat(id){activeChatId=id;renderChatList();renderChatMessages()}
+function deleteChat(id){
+  if(!confirm('¿Borrar esta conversación? No se puede deshacer.'))return;
+  chats=chats.filter(c=>c.id!==id);
+  if(activeChatId===id)activeChatId=chats[0]?.id||null;
+  saveChats();renderChatList();renderChatMessages();
+  if(chats.length===0)ensureChat();
+}
+function deleteCurrentChat(){if(activeChatId)deleteChat(activeChatId)}
+function renameCurrentChat(title){
+  const c=activeChat();if(!c)return;
+  c.title=title.trim()||'Sin título';saveChats();renderChatList();
+}
+function toggleChatSearch(){
+  const s=document.getElementById('chatSearch');
+  s.classList.toggle('hidden');
+  if(!s.classList.contains('hidden'))s.focus();
+  else{s.value='';renderChatList()}
+}
+function renderChatList(){
+  const list=document.getElementById('chatList');if(!list)return;
+  const q=(document.getElementById('chatSearch')?.value||'').toLowerCase();
+  const filtered=q?chats.filter(c=>c.title.toLowerCase().includes(q)||c.messages.some(m=>m.text.toLowerCase().includes(q))):chats;
+  list.innerHTML=filtered.map(c=>{
+    const d=new Date(c.ts);const df=d.toLocaleDateString(LANG==='en'?'en-US':LANG==='pt'?'pt-BR':LANG==='fr'?'fr-FR':LANG==='it'?'it-IT':'es-ES',{day:'numeric',month:'short'});
+    const last=c.messages[c.messages.length-1]?.text?.replace(/<[^>]+>/g,'').slice(0,50)||'';
+    return `<div class="chat-item p-2 rounded-lg cursor-pointer ${c.id===activeChatId?'is-active':''}" onclick="loadChat('${c.id}')" style="background:${c.id===activeChatId?'rgba(46,92,138,.3)':'transparent'};border:1px solid ${c.id===activeChatId?'var(--brand2)':'transparent'}">
+      <div class="flex items-start justify-between gap-1">
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-bold truncate">${escapeHtml(c.title)}</div>
+          <div class="text-xs text-[var(--muted)] truncate">${escapeHtml(last)||'Sin mensajes'}</div>
+          <div class="text-[10px] text-[var(--muted)] mt-0.5">${df} · ${c.messages.length} msg</div>
+        </div>
+        <button class="text-xs text-[var(--muted)] hover:text-[var(--err)] px-1" onclick="event.stopPropagation();deleteChat('${c.id}')" title="Borrar">✕</button>
+      </div>
+    </div>`;
+  }).join('')||'<div class="text-xs text-[var(--muted)] p-3 text-center">No hay conversaciones.</div>';
+}
+function escapeHtml(s){return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function renderChatMessages(){
+  const m=document.getElementById('tutorMessages');if(!m)return;
+  const c=activeChat();
+  if(!c){m.innerHTML='';return}
+  document.getElementById('chatTitleInput').value=c.title;
+  m.innerHTML=c.messages.map(msg=>{
+    const cls=msg.who==='user'?'bubble-user':'bubble-ai';
+    let body=msg.text;
+    // Audio message rendering
+    if(msg.audioUrl){body+=`<div class="mt-2"><audio controls src="${msg.audioUrl}" class="w-full"></audio></div>`}
+    return `<div class="bubble ${cls}">${body}</div>`;
+  }).join('');
+  m.scrollTop=m.scrollHeight;
+}
+function appendToChat(text,who,extra={}){
+  const c=activeChat();if(!c)return;
+  c.messages.push({text,who,ts:Date.now(),...extra});
+  if(c.title==='Nueva conversación'&&who==='user'&&c.messages.filter(x=>x.who==='user').length===1){
+    c.title=text.replace(/<[^>]+>/g,'').slice(0,40)+(text.length>40?'…':'');
+  }
+  c.ts=Date.now();
+  saveChats();renderChatMessages();renderChatList();
+}
+function tutorSend(){
+  const i=document.getElementById('tutorInput');const t=i.value.trim();if(!t)return;
+  appendToChat(escapeHtml(t),'user');i.value='';
+  // typing indicator
+  const m=document.getElementById('tutorMessages');
+  const loader=document.createElement('div');loader.className='bubble bubble-ai pulsing';loader.innerHTML=USE_REAL_AI?'🧠 consultando con Gemini…':'💭 pensando…';m.appendChild(loader);m.scrollTop=m.scrollHeight;
+  if(USE_REAL_AI){
+    tutorReplyAI(t).then(reply=>{loader.remove();appendToChat(reply,'ai')})
+      .catch(e=>{loader.remove();appendToChat('⚠️ Error: '+e.message,'ai')});
+  }else{
+    setTimeout(()=>{loader.remove();appendToChat(tutorReply(t),'ai')},600+Math.random()*500);
+  }
+}
+function tutorAsk(q){document.getElementById('tutorInput').value=q;tutorSend()}
+function toggleTutorContext(){document.getElementById('tutorContext').classList.toggle('hidden')}
+function toggleChatHistory(){
+  const p = document.getElementById('chatHistoryPanel');
+  p.classList.toggle('hidden');
+  if(!p.classList.contains('hidden')){
+    // en móvil, volver panel en overlay fullscreen
+    p.style.cssText = 'position:fixed;inset:0;z-index:45;background:var(--bg);padding:1rem;overflow-y:auto';
+    // añadir botón de cerrar si no existe
+    if(!p.querySelector('.close-history')){
+      const b = document.createElement('button');
+      b.className='close-history btn btn-ghost';
+      b.style.cssText='position:absolute;top:.7rem;right:.7rem';
+      b.textContent='✕';
+      b.onclick=toggleChatHistory;
+      p.appendChild(b);
+    }
+  } else {
+    p.style.cssText = '';
+  }
+}
+
+// ============ EAR TRAINING ============
+const INTERVALS={"2m":1,"2M":2,"3m":3,"3M":4,"4J":5,"TT":6,"5J":7,"6m":8,"6M":9,"7m":10,"7M":11,"8P":12};
+let earCurrent=null,earStats={c:0,w:0};
+let earCurrentNotes=[];
+async function earPlay(){
+  await ensureAudio();
+  const keys=Object.keys(INTERVALS);
+  const pick=keys[Math.floor(Math.random()*keys.length)];
+  earCurrent=pick;
+  const root=60+Math.floor(Math.random()*5);
+  const n1=midiToName(root),n2=midiToName(root+INTERVALS[pick]);
+  earCurrentNotes=[n1,n2];
+  const t=Tone.now();
+  synth.triggerAttackRelease(n1,"4n",t);
+  synth.triggerAttackRelease(n2,"4n",t+.6);
+  // ensure options enabled
+  document.querySelectorAll('#earOptions button').forEach(b=>{b.disabled=false;b.style.background=''});
+  document.getElementById('earFeedback').innerHTML='Escuchando... elige.';
+  document.getElementById('earPianoHint').classList.add('hidden');
+}
+document.querySelectorAll('#earOptions button[data-int]').forEach(b=>{
+  b.addEventListener('click',()=>{
+    if(!earCurrent)return;
+    const fb=document.getElementById('earFeedback');
+    document.querySelectorAll('#earOptions button').forEach(x=>x.disabled=true);
+    if(b.dataset.int===earCurrent){
+      earStats.c++;b.style.background="rgba(76,175,142,.3)";fb.innerHTML="✅ <b>¡Correcto!</b> Era "+b.textContent;fb.style.color="var(--ok)";
+    }else{
+      earStats.w++;b.style.background="rgba(224,96,96,.3)";
+      document.querySelectorAll('#earOptions button').forEach(x=>{if(x.dataset.int===earCurrent)x.style.background="rgba(76,175,142,.3)"});
+      fb.innerHTML="❌ Era <b>"+(document.querySelector(`#earOptions button[data-int="${earCurrent}"]`).textContent)+"</b>. Escucha otra vez para fijar el color del intervalo.";
+      fb.style.color="var(--err)";
+    }
+    document.getElementById('earCorrect').textContent=earStats.c;
+    document.getElementById('earWrong').textContent=earStats.w;
+    const tot=earStats.c+earStats.w;
+    document.getElementById('earAccuracy').textContent=tot?Math.round(earStats.c/tot*100)+"%":"—%";
+    // Show the mini piano with the two notes highlighted
+    if(earCurrentNotes.length===2){
+      document.getElementById('earPianoHint').classList.remove('hidden');
+      renderMiniPiano('earPianoHost',earCurrentNotes);
+    }
+    earCurrent=null;
+    setTimeout(earPlay,2400);
+  })
+});
+function setEarMode(m){
+  document.getElementById('earMode').textContent={intervals:"Intervalos",chordQual:"Cualidades de acordes",progressions:"Progresiones"}[m];
+}
+
+// ============ CURRICULUM ============
+const CURRICULUM=[
+  {n:1,name:"Fundamentos (repaso)",color:"from-blue-500 to-blue-700",hours:"~12h",modules:[
+    "Altura, intervalos y serie de armónicos","Escalas mayor y menor","Triadas e inversiones","Séptimas básicas","Ritmo y ritmo armónico","Armaduras y círculo de 5as","Cifrado y grados romanos","Ear training I"]},
+  {n:2,name:"Fluencia diatónica",color:"from-cyan-500 to-cyan-700",hours:"~20h",modules:[
+    "Triadas diatónicas y función","Cadencias","Voice-leading a 4 voces","Séptimas y guide tones","Notas no acordicas","Modos como sonido","Blues 12 compases","Ear training II","Beatles & Bach"]},
+  {n:3,name:"Armonía cromática",color:"from-sky-500 to-sky-700",hours:"~32h",modules:[
+    "Dominantes secundarios","Intercambio modal","Napolitana y sextas aumentadas","Tritono sub","Menor profundo","Modulación","Line clichés y pedal","Chord-Scale Theory","Ear training III"]},
+  {n:4,name:"Estilo e idioma",color:"from-amber-500 to-amber-700",hours:"~40h",modules:[
+    "Pastiche Bach","Mozart/Haydn clásico","Romanticismo","Impresionismo","Bebop","Modal y post-bop","Pop/rock","Armonía latina","Armonía de cine","Ear training IV"]},
+  {n:5,name:"Arreglos y orquestación",color:"from-orange-500 to-orange-700",hours:"~45h",modules:[
+    "Vocabulario de voicings","Small group","Big band","Cuerdas","Orquestación fundamentos","Reharmonización","Arreglos para voz","Producción moderna","Orquestación de cine"]},
+  {n:6,name:"Maestría y voz propia",color:"from-purple-500 to-purple-700",hours:"~60h",modules:[
+    "Post-tonal","Espectral y microtonal","Schenker avanzado","Sistemas no-occidentales","Jazz moderno","Fusión contemporánea","Negative harmony","Transcripción capstone","Obra final","Workflow profesional","Mitos revisitados"]}
+];
+function renderCurriculum(){
+  const c=document.getElementById('levelsContainer');
+  c.innerHTML=CURRICULUM.map(l=>{
+    const progress=l.n===1?100:l.n===2?45:l.n===3?12:0;
+    const badgeClass=l.n<=3?"":l.n<=5?"advanced":"master";
+    return `<div class="card card-hover p-5">
+      <div class="flex items-center gap-4">
+        <div class="level-badge ${badgeClass}">N${l.n}</div>
+        <div class="flex-1">
+          <div class="flex items-center gap-2 flex-wrap">
+            <h3 class="font-bold text-lg">Nivel ${l.n} · ${l.name}</h3>
+            <span class="chip">${l.modules.length} módulos</span>
+            <span class="chip">${l.hours}</span>
+          </div>
+          <div class="text-xs text-[var(--muted)] mt-1">${l.modules.slice(0,3).join(" · ")}…</div>
+          <div class="progress-bar mt-2"><div class="progress-fill" style="width:${progress}%"></div></div>
+        </div>
+        <button class="btn ${progress>0?"btn-accent":"btn-ghost"}" onclick="route('lesson')">${progress===0?"Comenzar":progress===100?"Revisar":"Continuar"}</button>
+      </div>
+      <details class="mt-3">
+        <summary class="text-sm text-[var(--muted)] cursor-pointer hover:text-[var(--text)]">Ver módulos del nivel ${l.n}</summary>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mt-3">
+          ${l.modules.map((m,i)=>`<div class="p-2 rounded text-sm flex items-center gap-2" style="background:var(--bg2)">
+            <span class="text-xs text-[var(--muted)] w-5">${i+1}.</span>${m}
+          </div>`).join("")}
+        </div>
+      </details>
+    </div>`;
+  }).join("");
+}
+
+// ============ MASTERY TREE ============
+const SKILLS=[
+  // level 1-3 sample skills with positions
+  {id:"intv",x:100,y:60,name:"Intervalos",desc:"Identificación y construcción",mastery:100,domain:"Oído"},
+  {id:"scl",x:100,y:150,name:"Escalas mayor/menor",desc:"Construcción y solfeo",mastery:100,domain:"Tonal"},
+  {id:"tri",x:100,y:240,name:"Triadas",desc:"4 cualidades e inversiones",mastery:100,domain:"Tonal"},
+  {id:"sev",x:100,y:330,name:"Séptimas",desc:"5 cualidades",mastery:95,domain:"Tonal"},
+  {id:"ks",x:100,y:420,name:"Armaduras",desc:"Círculo de quintas",mastery:100,domain:"Tonal"},
+
+  {id:"dia",x:330,y:100,name:"Diatónica y función",desc:"T-S-D, cadencias",mastery:88,domain:"Tonal"},
+  {id:"vl",x:330,y:200,name:"Voice-leading 4v",desc:"SATB, paralelismos",mastery:70,domain:"Tonal"},
+  {id:"gt",x:330,y:300,name:"Guide tones",desc:"3a y 7a en II-V-I",mastery:82,domain:"Jazz"},
+  {id:"mod",x:330,y:400,name:"Modos (sonido)",desc:"Color y cadencia",mastery:55,domain:"Tonal"},
+  {id:"blu",x:330,y:490,name:"Blues",desc:"12 compases, variantes",mastery:78,domain:"Jazz"},
+
+  {id:"sec",x:560,y:80,name:"Dominantes secundarios",desc:"V7/X tonicización",mastery:62,domain:"Jazz",learning:true},
+  {id:"mx",x:560,y:170,name:"Intercambio modal",desc:"Préstamos de paralela",mastery:40,domain:"Jazz",learning:true},
+  {id:"nap",x:560,y:260,name:"Napolitana / +6",desc:"Cromatismo clásico",mastery:25,domain:"Tonal"},
+  {id:"tts",x:560,y:350,name:"Tritono sub",desc:"bII7 sustituto",mastery:35,domain:"Jazz"},
+  {id:"cst",x:560,y:440,name:"Chord-Scale Theory",desc:"Escalas por acorde",mastery:30,domain:"Jazz"},
+
+  {id:"beb",x:790,y:110,name:"Lenguaje bebop",desc:"Escalas y enclosures",mastery:0,domain:"Jazz"},
+  {id:"mdj",x:790,y:210,name:"Jazz modal",desc:"Shorter, Hancock",mastery:0,domain:"Jazz"},
+  {id:"reh",x:790,y:310,name:"Reharmonización",desc:"Técnicas múltiples",mastery:10,domain:"Jazz"},
+  {id:"arr1",x:790,y:410,name:"Voicings avanzados",desc:"Drop 2, quartal, UST",mastery:5,domain:"Arreglos"},
+
+  {id:"bigb",x:1000,y:120,name:"Big band",desc:"Escritura seccional",mastery:0,domain:"Arreglos",locked:true},
+  {id:"orq",x:1000,y:220,name:"Orquestación",desc:"Transposición y balance",mastery:0,domain:"Arreglos",locked:true},
+  {id:"cine",x:1000,y:320,name:"Cine",desc:"Williams, Herrmann, Zimmer",mastery:0,domain:"Arreglos",locked:true},
+  {id:"post",x:1000,y:420,name:"Post-tonal",desc:"Sets, series",mastery:0,domain:"Composición",locked:true},
+];
+const EDGES=[
+  ["intv","dia"],["scl","dia"],["tri","dia"],["sev","gt"],["ks","dia"],["dia","vl"],["dia","gt"],["tri","mod"],["sev","blu"],
+  ["dia","sec"],["gt","sec"],["mod","mx"],["vl","nap"],["sec","tts"],["sec","cst"],["gt","cst"],
+  ["sec","beb"],["mod","mdj"],["cst","beb"],["sec","reh"],["mx","reh"],["tts","reh"],["reh","arr1"],
+  ["arr1","bigb"],["bigb","orq"],["reh","orq"],["orq","cine"],["beb","post"],["mdj","post"]
+];
+function renderMasteryTree(){
+  const svg=document.getElementById('skillTree');
+  svg.innerHTML="";
+  // edges
+  EDGES.forEach(([a,b])=>{
+    const sa=SKILLS.find(s=>s.id===a),sb=SKILLS.find(s=>s.id===b);
+    if(!sa||!sb)return;
+    const path=document.createElementNS("http://www.w3.org/2000/svg","path");
+    const midX=(sa.x+sb.x)/2;
+    path.setAttribute("d",`M ${sa.x+30} ${sa.y} C ${midX} ${sa.y}, ${midX} ${sb.y}, ${sb.x-30} ${sb.y}`);
+    path.setAttribute("class","skill-edge");
+    svg.appendChild(path);
+  });
+  // nodes
+  SKILLS.forEach(s=>{
+    const g=document.createElementNS("http://www.w3.org/2000/svg","g");
+    g.style.cursor="pointer";
+    g.addEventListener("click",()=>selectSkill(s));
+    const circle=document.createElementNS("http://www.w3.org/2000/svg","circle");
+    circle.setAttribute("cx",s.x);circle.setAttribute("cy",s.y);circle.setAttribute("r",24);
+    let cls="skill-node";
+    if(s.locked)cls+=" locked";
+    else if(s.mastery>=85)cls+=" mastered";
+    else if(s.mastery>=20)cls+=" learning";
+    circle.setAttribute("class",cls);
+    g.appendChild(circle);
+    const text=document.createElementNS("http://www.w3.org/2000/svg","text");
+    text.setAttribute("x",s.x);text.setAttribute("y",s.y+4);
+    text.setAttribute("text-anchor","middle");text.setAttribute("fill","#E7ECF5");text.setAttribute("font-size","10");text.setAttribute("font-weight","700");
+    text.textContent=s.mastery>0?s.mastery+"%":"—";
+    g.appendChild(text);
+    const lbl=document.createElementNS("http://www.w3.org/2000/svg","text");
+    lbl.setAttribute("x",s.x);lbl.setAttribute("y",s.y+42);
+    lbl.setAttribute("text-anchor","middle");lbl.setAttribute("fill","#8B97B2");lbl.setAttribute("font-size","10");
+    lbl.textContent=s.name.length>16?s.name.slice(0,15)+"…":s.name;
+    g.appendChild(lbl);
+    svg.appendChild(g);
+  });
+}
+function selectSkill(s){
+  const d=document.getElementById('skillDetail');
+  d.classList.remove('hidden');
+  document.getElementById('skillDomain').textContent=s.domain;
+  document.getElementById('skillName').textContent=s.name;
+  document.getElementById('skillDesc').textContent=s.desc;
+  const m=document.getElementById('skillMastery');
+  m.textContent=s.mastery+"%";
+  m.style.color=s.mastery>=85?"var(--ok)":s.mastery>=20?"var(--accent2)":"var(--muted)";
+}
+
+// ============ LIBRARY ============
+const SONGS=[
+  {t:"Autumn Leaves",a:"Joseph Kosma · 1945",st:"Jazz",lvl:"Intermedio",tags:["ii–V–i","Modulación relativa"],cover:"#2E5C8A"},
+  {t:"All the Things You Are",a:"Jerome Kern · 1939",st:"Jazz",lvl:"Avanzado",tags:["Modulación","Círculo 5as"],cover:"#4A7FB8"},
+  {t:"Girl from Ipanema",a:"Antônio Carlos Jobim · 1962",st:"Latino",lvl:"Intermedio",tags:["Bossa","ii–V"],cover:"#8E9ABB"},
+  {t:"Giant Steps",a:"John Coltrane · 1959",st:"Jazz",lvl:"Avanzado",tags:["Coltrane changes","Mediantes cromáticas"],cover:"#C77B2A"},
+  {t:"Martha My Dear",a:"The Beatles · 1968",st:"Pop",lvl:"Intermedio",tags:["Dominantes secundarios","Cromatismo"],cover:"#E29A4F"},
+  {t:"Stella by Starlight",a:"Victor Young · 1944",st:"Jazz",lvl:"Avanzado",tags:["Reharm","Ambiguedad"],cover:"#7C3AED"},
+  {t:"Yesterday",a:"The Beatles · 1965",st:"Pop",lvl:"Intermedio",tags:["Modal mixture","Préstamo menor"],cover:"#A855F7"},
+  {t:"Chega de Saudade",a:"Jobim · 1958",st:"Latino",lvl:"Intermedio",tags:["Mayor-menor","Cromatismo"],cover:"#4CAF8E"},
+  {t:"Prelude in C",a:"J.S. Bach · BWV 846",st:"Clásico",lvl:"Principiante",tags:["Arpegios","Pedal"],cover:"#6EDFB7"},
+  {t:"Clair de Lune",a:"Debussy · 1905",st:"Clásico",lvl:"Avanzado",tags:["Planing","Whole-tone"],cover:"#1a5d9b"},
+  {t:"Cantaloupe Island",a:"Herbie Hancock · 1964",st:"Jazz",lvl:"Intermedio",tags:["Modal","Dorian"],cover:"#E6B450"},
+  {t:"Libertango",a:"Piazzolla · 1974",st:"Latino",lvl:"Avanzado",tags:["Tango moderno","Cromatismo"],cover:"#E06060"},
+];
+function renderLibrary(){
+  document.getElementById('songLibrary').innerHTML=SONGS.map(s=>`
+    <div class="card card-hover p-0 cursor-pointer overflow-hidden" onclick="route('analysis')">
+      <div style="height:110px;background:linear-gradient(135deg,${s.cover} 0%,var(--bg3) 120%);display:flex;align-items:center;justify-content:center;font-size:2.5rem">🎵</div>
+      <div class="p-4">
+        <div class="flex items-center gap-2 mb-1"><span class="chip">${s.st}</span><span class="chip chip-accent">${s.lvl}</span></div>
+        <h4 class="font-bold">${s.t}</h4>
+        <div class="text-xs text-[var(--muted)] mb-2">${s.a}</div>
+        <div class="flex gap-1 flex-wrap">${s.tags.map(t=>`<span class="text-[10px] text-[var(--muted)] border border-[var(--line)] rounded px-1 py-0.5">${t}</span>`).join("")}</div>
+      </div>
+    </div>
+  `).join("");
+}
+
+// ============ STYLE SELECTOR ============
+document.getElementById('styleSelect').addEventListener('change',e=>{
+  const s=e.target.value;
+  const map={classical:"Clásico",jazz:"Jazz",pop:"Pop / Rock",latin:"Latino / Folk",film:"Cine"};
+  document.querySelectorAll('.styleShow').forEach(el=>el.textContent=map[s]);
+  const ctx=document.getElementById('styleContext');if(ctx)ctx.textContent="enfoque "+map[s].toLowerCase();
+  const ts=document.getElementById('tutorStyleChip');if(ts)ts.textContent=map[s];
+  // dynamically change example
+  const ex=document.getElementById('exampleSong');
+  if(ex){const examples={
+    classical:"🎻 Mozart, Sonata K.331 — compases 17-24 (V/vi a la cadencia)",
+    jazz:"🎷 \"All the Things You Are\" — compases 1-4 (Kern/Hammerstein)",
+    pop:"🎤 Beatles — \"Something\" — uso de V7/IV en la letra C",
+    latin:"🥁 Jobim — \"Chega de Saudade\" — movimiento V7/vi al B",
+    film:"🎬 John Williams — \"Hedwig's Theme\" — V/vi y desvíos menores"
+  };ex.textContent=examples[s]}
+});
+
+// (menu handler ya registrado arriba junto al backdrop)
+
+// tab switcher
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+  t.parentElement.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+}));
+
+// ============ MICROPHONE ============
+let micStream=null,micRecorder=null,micChunks=[],micActive=false,micAnalyser=null,micAc=null,micStartTime=0,micTimer=null,micTarget='tutor';
+async function startMic(target='tutor'){
+  micTarget=target;
+  try{
+    await ensureAudio();
+    const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+    micStream=stream;micChunks=[];
+    micRecorder=new MediaRecorder(stream,{mimeType:getSupportedMime()});
+    micRecorder.ondataavailable=e=>{if(e.data.size>0)micChunks.push(e.data)};
+    micRecorder.start();
+    micActive=true;micStartTime=Date.now();
+    // WebAudio analyser for live waveform + pitch
+    micAc=Tone.context;
+    const src=micAc.createMediaStreamSource(stream);
+    micAnalyser=micAc.createAnalyser();micAnalyser.fftSize=2048;
+    src.connect(micAnalyser);
+    const wave=new Uint8Array(micAnalyser.frequencyBinCount);
+    const freq=new Float32Array(micAnalyser.frequencyBinCount);
+    function tick(){
+      if(!micActive)return;
+      micAnalyser.getByteTimeDomainData(wave);
+      const canvasId=target==='ear'?'earMicWave':'tutorMicWave';
+      const cv=document.getElementById(canvasId);
+      if(cv){drawWaveform(cv,wave);}
+      const dur=((Date.now()-micStartTime)/1000).toFixed(1);
+      const tm=document.getElementById('micTimer');if(tm)tm.textContent=dur+'s';
+      if(target==='ear'){
+        // simple pitch tracking via autocorrelation
+        micAnalyser.getFloatTimeDomainData(new Float32Array(micAnalyser.fftSize));
+      }
+      requestAnimationFrame(tick);
+    }
+    tick();
+    return true;
+  }catch(e){
+    alert('⚠️ No pude acceder al micrófono.\n\n'+
+      'Esto puede deberse a:\n'+
+      '• Permisos bloqueados (revisa la barra de direcciones o Ajustes del navegador)\n'+
+      '• Estás viendo la página en file:// — necesitas un servidor HTTP (doble click en servir.command o sube a Netlify/Vercel)\n'+
+      '• Tu navegador no soporta getUserMedia\n\n'+
+      'Error: '+e.message);
+    return false;
+  }
+}
+function getSupportedMime(){
+  const opts=['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg'];
+  for(const m of opts){if(MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(m))return m}
+  return '';
+}
+function drawWaveform(canvas,data){
+  const ctx=canvas.getContext('2d');const w=canvas.width,h=canvas.height;
+  ctx.fillStyle='rgba(20,26,46,.5)';ctx.fillRect(0,0,w,h);
+  ctx.strokeStyle='#C77B2A';ctx.lineWidth=2;ctx.beginPath();
+  const slice=w/data.length;let x=0;
+  for(let i=0;i<data.length;i++){
+    const v=data[i]/128.0;const y=v*h/2;
+    if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+    x+=slice;
+  }
+  ctx.stroke();
+}
+function stopMic(){
+  return new Promise(resolve=>{
+    if(!micActive){resolve(null);return}
+    micActive=false;
+    if(micRecorder&&micRecorder.state==='recording'){
+      micRecorder.onstop=()=>{
+        const blob=new Blob(micChunks,{type:micRecorder.mimeType||'audio/webm'});
+        if(micStream)micStream.getTracks().forEach(t=>t.stop());
+        micStream=null;
+        resolve({blob,url:URL.createObjectURL(blob),duration:(Date.now()-micStartTime)/1000});
+      };
+      micRecorder.stop();
+    }else{
+      if(micStream)micStream.getTracks().forEach(t=>t.stop());
+      resolve(null);
+    }
+  });
+}
+function cancelMic(){
+  micActive=false;
+  if(micStream)micStream.getTracks().forEach(t=>t.stop());
+  if(micRecorder&&micRecorder.state==='recording')try{micRecorder.stop()}catch(e){}
+  document.getElementById('tutorMicPanel').classList.add('hidden');
+  const eb=document.getElementById('earMicBtn');if(eb){eb.textContent='🎤 Cantar';eb.classList.remove('pulsing')}
+  document.getElementById('earMicWave')?.classList.add('hidden');
+}
+
+// Tutor mic flow
+async function startTutorMic(){
+  const ok=await startMic('tutor');
+  if(!ok)return;
+  document.getElementById('tutorMicPanel').classList.remove('hidden');
+  document.getElementById('tutorMicWave').classList.remove('hidden');
+  document.getElementById('tutorMicBtn').classList.add('pulsing');
+}
+async function stopAndSendMic(){
+  document.getElementById('tutorMicBtn').classList.remove('pulsing');
+  const r=await stopMic();
+  document.getElementById('tutorMicPanel').classList.add('hidden');
+  if(!r)return;
+  appendToChat('🎤 <i>Mensaje de voz (' + r.duration.toFixed(1) + 's)</i>','user',{audioUrl:r.url});
+  // simulated tutor response
+  const m=document.getElementById('tutorMessages');
+  const loader=document.createElement('div');loader.className='bubble bubble-ai pulsing';loader.innerHTML='🎧 escuchando y analizando tu grabación…';m.appendChild(loader);m.scrollTop=m.scrollHeight;
+  setTimeout(()=>{
+    loader.remove();
+    appendToChat('Recibí tu audio ('+r.duration.toFixed(1)+'s). En la versión completa el motor de pitch detecta la melodía y la transcribe a notación, y después puedo decirte si está afinada, en qué tonalidad cantaste, y sugerir ejercicios. <br><br>💡 Para ver esta función real contra una nota de referencia, prueba el <b>Ear training</b> y canta la respuesta al intervalo.','ai');
+  },1200);
+}
+
+// Ear training mic
+let earMicRecording=false;
+async function earMicToggle(){
+  if(earMicRecording){
+    const r=await stopMic();earMicRecording=false;
+    document.getElementById('earMicBtn').textContent='🎤 Cantar';
+    document.getElementById('earMicBtn').classList.remove('pulsing');
+    if(!r)return;
+    const res=document.getElementById('earMicResult');
+    res.classList.remove('hidden');
+    res.innerHTML='🎵 Analizando ' + r.duration.toFixed(1) + 's de audio...';
+    // Simulated analysis: in production, run pitch detection
+    setTimeout(()=>{
+      const guess=earCurrent||['3M','5J','4J','3m'][Math.floor(Math.random()*4)];
+      const label=document.querySelector(`#earOptions button[data-int="${guess}"]`)?.textContent||guess;
+      res.innerHTML=`✅ Detecté aproximadamente <b>${label}</b>. En la versión completa se compara tu afinación con la referencia y te da feedback micro-tonal.`;
+    },900);
+  }else{
+    const ok=await startMic('ear');if(!ok)return;
+    earMicRecording=true;
+    document.getElementById('earMicBtn').textContent='⏹ Detener';
+    document.getElementById('earMicBtn').classList.add('pulsing');
+    document.getElementById('earMicWave').classList.remove('hidden');
+    document.getElementById('earMicResult').classList.add('hidden');
+  }
+}
+
+// ============ MINI PIANO (reutilizable) ============
+function renderMiniPiano(hostId,highlight=[]){
+  const h=document.getElementById(hostId);if(!h)return;
+  h.innerHTML='';
+  const cont=document.createElement('div');
+  cont.className='relative mx-auto';cont.style.cssText='width:264px;height:140px';
+  const whites=['C','D','E','F','G','A','B'];
+  const blacks=[{n:'C#',x:26},{n:'D#',x:64},null,{n:'F#',x:140},{n:'G#',x:178},{n:'A#',x:216}];
+  whites.forEach((w,i)=>{
+    const k=document.createElement('div');k.className='key key-white';
+    k.style.cssText=`width:38px;height:140px;position:absolute;left:${i*38}px`;
+    k.dataset.note=w+'4';
+    if(highlight.includes(w+'4')||highlight.includes(w))k.classList.add('active');
+    k.innerHTML=`<div class="key-label">${w}</div>`;
+    k.onclick=async()=>{await ensureAudio();synth.triggerAttackRelease(w+'4','4n');k.classList.add('active');setTimeout(()=>k.classList.remove('active'),300)};
+    cont.appendChild(k);
+  });
+  blacks.forEach(b=>{
+    if(!b)return;
+    const k=document.createElement('div');k.className='key key-black';
+    k.style.cssText=`width:24px;height:90px;position:absolute;left:${b.x}px;top:0`;
+    k.dataset.note=b.n+'4';
+    if(highlight.includes(b.n+'4')||highlight.includes(b.n))k.classList.add('active');
+    k.onclick=async()=>{await ensureAudio();synth.triggerAttackRelease(b.n+'4','4n');k.classList.add('active');setTimeout(()=>k.classList.remove('active'),300)};
+    cont.appendChild(k);
+  });
+  h.appendChild(cont);
+}
+
+// Tutor inline piano
+function togglePianoInTutor(){
+  const p=document.getElementById('tutorPianoPanel');
+  p.classList.toggle('hidden');
+  if(!p.classList.contains('hidden'))renderMiniPiano('tutorPianoHost');
+}
+
+// ============ FLOATING INSTRUMENT WIDGET ============
+let FAB_STATE = {
+  open: false,
+  mode: 'piano',       // 'piano' | 'guitar'
+  octaves: 1,          // 1 | 2
+  chordMode: false,    // true = sostener notas (acordes)
+  activeNotes: new Map(), // note → true (mientras está pulsada)
+  sequence: []         // [{notes:['C4','E4','G4'], name:'C mayor', duration:1}, …]
+};
+
+function toggleFab(){
+  FAB_STATE.open = !FAB_STATE.open;
+  const panel = document.getElementById('fabPanel');
+  panel.style.display = FAB_STATE.open ? 'flex' : 'none';
+  if(FAB_STATE.open){
+    lockBodyScroll();
+    renderFab();
+  } else {
+    unlockBodyScroll();
+    releaseAllFabNotes();
+  }
+}
+// ====== ANTI-JUMP ANDROID: body-fixed strategy ======
+let _bodyLockState = null;
+function lockBodyScroll(){
+  if(_bodyLockState) return;
+  _bodyLockState = { y: window.scrollY || document.documentElement.scrollTop };
+  document.documentElement.classList.add('fab-open');
+  document.body.classList.add('fab-open');
+  document.body.style.top = -_bodyLockState.y + 'px';
+  // Bloquear cualquier touchmove sobre el resto de la página
+  document.addEventListener('touchmove', _preventScroll, {passive:false});
+}
+function unlockBodyScroll(){
+  if(!_bodyLockState) return;
+  const y = _bodyLockState.y;
+  document.documentElement.classList.remove('fab-open');
+  document.body.classList.remove('fab-open');
+  document.body.style.top = '';
+  document.removeEventListener('touchmove', _preventScroll);
+  window.scrollTo(0, y);
+  _bodyLockState = null;
+}
+function _preventScroll(e){
+  // Permitir scroll solo dentro del panel
+  const panel = document.getElementById('fabPanel');
+  if(!panel || !panel.contains(e.target)) e.preventDefault();
+}
+// Rotación: re-renderizar teclas para ajustar tamaño landscape/portrait
+window.addEventListener('orientationchange', ()=>{
+  if(!FAB_STATE.open) return;
+  setTimeout(()=> renderFab(), 200);
+});
+if(window.visualViewport){
+  let _lastW = window.visualViewport.width;
+  window.visualViewport.addEventListener('resize', ()=>{
+    if(!FAB_STATE.open) return;
+    // Solo re-render si cambió el ancho (rotación), NO si solo cambió el alto (URL bar)
+    const w = window.visualViewport.width;
+    if(Math.abs(w - _lastW) > 50){ _lastW = w; renderFab(); }
+  });
+}
+function fabSetMode(m){
+  FAB_STATE.mode = m;
+  renderFab();
+}
+function toggleChordMode(){
+  FAB_STATE.chordMode = !FAB_STATE.chordMode;
+  document.getElementById('fabChordToggle').style.background = FAB_STATE.chordMode ? 'linear-gradient(135deg,var(--brand),var(--brand2))' : '';
+  document.getElementById('fabChordToggle').style.color = FAB_STATE.chordMode ? '#fff' : '';
+  updateFabStatus();
+  if(!FAB_STATE.chordMode) releaseAllFabNotes();
+}
+function toggleOctaves(){
+  FAB_STATE.octaves = FAB_STATE.octaves===1 ? 2 : 1;
+  document.getElementById('fabOctaveBtn').textContent = FAB_STATE.octaves+'×';
+  document.getElementById('fabOctaveBtn').style.background = FAB_STATE.octaves===2 ? 'linear-gradient(135deg,var(--accent),var(--accent2))' : '';
+  document.getElementById('fabOctaveBtn').style.color = FAB_STATE.octaves===2 ? '#fff' : '';
+  renderFab();
+}
+// ====== DETECCIÓN AVANZADA DE ACORDES CON INVERSIONES ======
+const CHORD_SHAPES = {
+  '0,4,7':      {sym:'',         name:'mayor'},
+  '0,3,7':      {sym:'m',        name:'menor'},
+  '0,3,6':      {sym:'°',        name:'disminuida'},
+  '0,4,8':      {sym:'+',        name:'aumentada'},
+  '0,5,7':      {sym:'sus4',     name:'suspendida 4'},
+  '0,2,7':      {sym:'sus2',     name:'suspendida 2'},
+  '0,4,7,11':   {sym:'maj7',     name:'mayor séptima'},
+  '0,4,7,10':   {sym:'7',        name:'dominante séptima'},
+  '0,3,7,10':   {sym:'m7',       name:'menor séptima'},
+  '0,3,6,10':   {sym:'m7♭5',     name:'semi-disminuida'},
+  '0,3,6,9':    {sym:'°7',       name:'séptima disminuida'},
+  '0,3,7,11':   {sym:'mMaj7',    name:'menor mayor séptima'},
+  '0,4,8,10':   {sym:'7♯5',      name:'séptima aumentada'},
+  '0,4,7,14':   {sym:'add9',     name:'mayor add9'},
+  '0,3,7,14':   {sym:'m(add9)',  name:'menor add9'},
+  '0,4,7,10,14':{sym:'9',        name:'novena dominante'},
+  '0,4,7,11,14':{sym:'maj9',     name:'mayor novena'},
+  '0,3,7,10,14':{sym:'m9',       name:'menor novena'},
+  '0,4,7,10,14,17':{sym:'11',    name:'dominante oncena'},
+  '0,4,7,10,14,21':{sym:'13',    name:'dominante trecena'},
+  '0,5,10':     {sym:'4(cuartal)', name:'cuartal tríada'},
+  '0,5,10,15':  {sym:'4(cuartal)', name:'cuartal'},
+};
+
+// Dado un intervalo desde la raíz, devuelve qué nota acordal es
+function chordToneFromRoot(interval){
+  const map = {0:'fundamental',3:'3ª',4:'3ª',5:'4ª',6:'♭5',7:'5ª',8:'♯5',9:'6ª',10:'♭7',11:'7ª',14:'9ª'};
+  return map[interval] || null;
+}
+function inversionLabel(interval){
+  // interval = distancia en semitonos entre raíz y bajo
+  if(interval === 0) return {label:'fundamental', sym:''};
+  if(interval === 3 || interval === 4) return {label:'1ª inv. (3ª en el bajo)', sym:'/3'};
+  if(interval === 7) return {label:'2ª inv. (5ª en el bajo)', sym:'/5'};
+  if(interval === 10 || interval === 11) return {label:'3ª inv. (7ª en el bajo)', sym:'/7'};
+  if(interval === 8) return {label:'♯5 en el bajo', sym:'/♯5'};
+  if(interval === 9) return {label:'6ª en el bajo', sym:'/6'};
+  if(interval === 14 || interval === 2) return {label:'9ª en el bajo', sym:'/9'};
+  if(interval === 5) return {label:'4ª en el bajo', sym:'/4'};
+  if(interval === 6) return {label:'♭5 en el bajo', sym:'/♭5'};
+  return {label:'bajo no acordal', sym:''};
+}
+
+function detectChordDetailed(noteNames){
+  if(noteNames.length < 2) return null;
+  // orden por MIDI real → bajo es la nota más grave que toca
+  const midis = noteNames.map(n=>noteNameToMidi(n)).sort((a,b)=>a-b);
+  const bass = midis[0];
+  const bassPc = ((bass%12)+12)%12;
+  const pcs = [...new Set(midis.map(m=>((m%12)+12)%12))].sort((a,b)=>a-b);
+  const candidates = [];
+  for(const rootPc of pcs){
+    const ivs = pcs.map(p=>(p - rootPc + 12) % 12).sort((a,b)=>a-b).join(',');
+    const shape = CHORD_SHAPES[ivs];
+    if(shape){
+      const bassFromRoot = (bassPc - rootPc + 12) % 12;
+      const inv = inversionLabel(bassFromRoot);
+      const score = (bassFromRoot===0 ? 200 : 0)  // root position preferida
+                  + (shape.sym.length < 4 ? 30 : 10) // prefiere nombres cortos (simple)
+                  + pcs.length*5; // más notas = identificación más fuerte
+      candidates.push({
+        root: NOTE_MAP[rootPc],
+        rootPc,
+        quality: shape.sym,
+        qualityName: shape.name,
+        bass: NOTE_MAP[bassPc],
+        bassPc,
+        bassFromRoot,
+        inversion: inv.label,
+        inversionSym: inv.sym,
+        slash: bassPc===rootPc ? '' : ('/' + NOTE_MAP[bassPc]),
+        score
+      });
+    }
+  }
+  if(candidates.length === 0) return { unknown: true, pcs };
+  candidates.sort((a,b) => b.score - a.score);
+  return candidates[0];
+}
+
+function updateFabStatus(){
+  const active = [...FAB_STATE.activeNotes.keys()];
+  const el = document.getElementById('fabStatus');
+  if(active.length === 0){el.innerHTML=''; return}
+  const noteList = active.map(n=>n.replace('#','♯')).sort((a,b)=>noteNameToMidi(a.replace('♯','#'))-noteNameToMidi(b.replace('♯','#')));
+  if(active.length === 1){
+    el.innerHTML = '<span style="color:#BCD0EA">Nota:</span> <b>'+noteList[0]+'</b>';
+    return;
+  }
+  const d = detectChordDetailed(active);
+  if(!d || d.unknown){
+    el.innerHTML = '<span style="color:#BCD0EA">Notas:</span> '+noteList.join(' · ')+' <span style="color:var(--muted)">(sonoridad no estándar)</span>';
+    return;
+  }
+  // Construir display
+  const chordName = '<b style="color:var(--accent2);font-size:1.05rem">' + d.root + d.quality + d.slash + '</b>';
+  const fullName = d.qualityName + (d.slash ? ' en ' + d.bass : '');
+  const invChip = d.bassFromRoot === 0
+    ? ''
+    : ' <span style="background:rgba(199,123,42,.25);color:#F2C68A;padding:.1rem .45rem;border-radius:4px;font-size:.72rem;margin-left:.3rem">'+d.inversion+'</span>';
+  const notesLine = '<span style="color:var(--muted);font-size:.72rem">'+noteList.join('-')+'</span>';
+  el.innerHTML = chordName + invChip + '<br>' +
+                 '<span style="color:#BCD0EA;font-size:.78rem">'+fullName+'</span> · ' + notesLine;
+}
+
+async function fabPlay(note){
+  await ensureAudio();
+  if(FAB_STATE.chordMode){
+    if(FAB_STATE.activeNotes.has(note)){
+      // toggle off
+      synth.triggerRelease(note);
+      FAB_STATE.activeNotes.delete(note);
+    } else {
+      synth.triggerAttack(note);
+      FAB_STATE.activeNotes.set(note, true);
+    }
+  } else {
+    synth.triggerAttackRelease(note, '4n');
+  }
+  updateFabStatus();
+}
+function fabPressDown(note){
+  if(!FAB_STATE.chordMode){
+    (async()=>{await ensureAudio();synth.triggerAttack(note);FAB_STATE.activeNotes.set(note,true);updateFabStatus()})();
+  } else {
+    fabPlay(note);
+  }
+}
+function fabPressUp(note){
+  if(!FAB_STATE.chordMode){
+    synth.triggerRelease(note);
+    FAB_STATE.activeNotes.delete(note);
+    updateFabStatus();
+  }
+}
+function releaseAllFabNotes(){
+  for(const n of FAB_STATE.activeNotes.keys()) synth.triggerRelease(n);
+  FAB_STATE.activeNotes.clear();
+  updateFabStatus();
+  document.querySelectorAll('.fab-key.active, .fab-fret.active').forEach(el=>el.classList.remove('active'));
+}
+
+function renderFab(){
+  const b = document.getElementById('fabBody');
+  document.getElementById('fabTabPiano').style.background = FAB_STATE.mode==='piano' ? 'rgba(46,92,138,.3)' : '';
+  document.getElementById('fabTabGuitar').style.background = FAB_STATE.mode==='guitar' ? 'rgba(199,123,42,.3)' : '';
+  document.getElementById('fabHint').innerHTML = FAB_STATE.mode==='piano'
+    ? (FAB_STATE.chordMode ? 'Toca varias teclas — <b>se mantienen sonando</b> hasta que las toques otra vez. Luego ⏺ Guardar acorde.' : 'Mantén pulsada la tecla para sostener. Activa <b>Sostener</b> para construir acordes.')
+    : (FAB_STATE.chordMode ? 'Toca varios trastes — acordes de guitarra (sostenidos). Luego ⏺ Guardar acorde.' : 'Cada traste es una nota. Afinación estándar EADGBE.');
+  releaseAllFabNotes();
+  b.innerHTML = '';
+  if(FAB_STATE.mode==='piano') b.appendChild(buildFabPiano());
+  else b.appendChild(buildFabGuitar());
+  renderSequence();
+}
+
+function buildFabPiano(){
+  const container = document.createElement('div');
+  // scroll horizontal permitido SOLO con pan-x, taps NO hacen scroll vertical ni zoom
+  container.style.cssText = 'position:relative;user-select:none;-webkit-user-select:none;touch-action:pan-x;overflow-x:auto;overflow-y:hidden;max-width:100%;padding-bottom:4px;overscroll-behavior:contain';
+  const octaves = FAB_STATE.octaves;
+  const whites = ['C','D','E','F','G','A','B'];
+  const blackOffsets = {'C#':1,'D#':2,'F#':4,'G#':5,'A#':6};
+  // Detectar landscape en móvil → teclas más compactas
+  const isMobile = window.matchMedia('(max-width: 900px)').matches;
+  const isLandscape = window.matchMedia('(orientation: landscape) and (max-height: 500px)').matches;
+  const kw = isLandscape ? 34 : (isMobile ? 40 : 36);
+  const kh = isLandscape ? 90 : (isMobile ? 140 : 140);
+  const bkh = isLandscape ? 55 : 90; // black key height
+  const totalKeys = whites.length * octaves;
+  // Si cabe en pantalla sin scroll, centrarlo; si no, permitir scroll
+  const availW = window.innerWidth - 20;
+  const neededW = totalKeys * kw;
+  const inner = document.createElement('div');
+  inner.style.cssText = `position:relative;width:${neededW}px;height:${kh}px;margin:0 auto`;
+  // white keys
+  for(let o=0;o<octaves;o++){
+    whites.forEach((w,i)=>{
+      const note = w + (4+o);
+      const k = document.createElement('div');
+      k.className = 'fab-key key-white';
+      k.dataset.note = note;
+      k.style.cssText = `position:absolute;left:${(o*whites.length+i)*kw}px;width:${kw}px;height:${kh}px;border-radius:0 0 5px 5px;`;
+      k.innerHTML = `<div class="key-label">${w}${w==='C'?'<br><small>'+(4+o)+'</small>':''}</div>`;
+      bindKey(k, note);
+      inner.appendChild(k);
+    });
+  }
+  // black keys
+  for(let o=0;o<octaves;o++){
+    Object.entries(blackOffsets).forEach(([bn,off])=>{
+      const note = bn + (4+o);
+      const left = (o*whites.length*kw) + off*kw - 12;
+      const k = document.createElement('div');
+      k.className = 'fab-key key-black';
+      k.dataset.note = note;
+      const bkw = isLandscape ? 20 : 24;
+      k.style.cssText = `position:absolute;left:${left}px;top:0;width:${bkw}px;height:${bkh}px;border-radius:0 0 4px 4px;z-index:2`;
+      bindKey(k, note);
+      inner.appendChild(k);
+    });
+  }
+  container.appendChild(inner);
+  return container;
+}
+
+function bindKey(el, note){
+  el.style.touchAction = 'none'; // la tecla NO permite scroll, solo tap
+  el.addEventListener('pointerdown', e=>{
+    e.preventDefault();
+    e.stopPropagation();
+    try{ el.setPointerCapture(e.pointerId) }catch(_){}
+    el.classList.add('active');
+    fabPressDown(note);
+  }, {passive:false});
+  el.addEventListener('pointerup', e=>{
+    e.preventDefault(); e.stopPropagation();
+    if(!FAB_STATE.chordMode){ el.classList.remove('active'); fabPressUp(note); }
+    else { setTimeout(()=>{if(!FAB_STATE.activeNotes.has(note))el.classList.remove('active')},50) }
+  }, {passive:false});
+  el.addEventListener('pointercancel', e=>{ el.classList.remove('active'); fabPressUp(note); });
+  // Evitar gestos del navegador (double-tap zoom, long-press menu)
+  el.addEventListener('contextmenu', e=>e.preventDefault());
+  el.addEventListener('touchstart', e=>e.preventDefault(), {passive:false});
+}
+
+function buildFabGuitar(){
+  // Afinación estándar de 6 cuerdas, grave→agudo: E2 A2 D3 G3 B3 E4
+  const tuning = ['E2','A2','D3','G3','B3','E4'];
+  const frets = FAB_STATE.octaves===1 ? 6 : 12; // 2x = más trastes
+  const isMobile = window.matchMedia('(max-width: 900px)').matches;
+  const isLandscape = window.matchMedia('(orientation: landscape) and (max-height: 500px)').matches;
+  const fw = isLandscape ? 38 : (isMobile ? 48 : 44);
+  const fh = isLandscape ? 22 : (isMobile ? 30 : 24);
+  const totalW = (frets+1)*fw;
+  const totalH = tuning.length*fh;
+  const wrap = document.createElement('div');
+  wrap.style.cssText = `position:relative;user-select:none;-webkit-user-select:none;touch-action:pan-x;background:linear-gradient(180deg,#6b4823,#4a2f15);border-radius:6px;padding:${isLandscape?'4px':'10px'};overflow-x:auto;overflow-y:hidden;max-width:100%;overscroll-behavior:contain`;
+  const inner = document.createElement('div');
+  inner.style.cssText = `position:relative;width:${totalW}px;height:${totalH}px;margin:0 auto`;
+
+  // strings (horizontal)
+  for(let s=0;s<tuning.length;s++){
+    const line = document.createElement('div');
+    line.style.cssText = `position:absolute;left:0;right:0;top:${s*fh+fh/2}px;height:${s<3?2:1}px;background:rgba(255,255,255,.55)`;
+    inner.appendChild(line);
+  }
+  // fret lines (vertical)
+  for(let f=0;f<=frets;f++){
+    const line = document.createElement('div');
+    line.style.cssText = `position:absolute;top:0;bottom:0;left:${f*fw}px;width:${f===0?3:1}px;background:${f===0?'#FFDDAA':'rgba(200,200,200,.6)'}`;
+    inner.appendChild(line);
+  }
+  // fret dots (3,5,7,9)
+  [3,5,7,9].forEach(f=>{
+    if(f<=frets){
+      const dot = document.createElement('div');
+      dot.style.cssText = `position:absolute;top:${totalH/2-4}px;left:${f*fw+fw/2-4}px;width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.35)`;
+      inner.appendChild(dot);
+    }
+  });
+
+  // clickable zones — cada celda (cuerda, traste)
+  for(let s=0;s<tuning.length;s++){
+    const rootMidi = noteNameToMidi(tuning[s]);
+    for(let f=0;f<=frets;f++){
+      const midi = rootMidi + f;
+      const note = midiToName(midi);
+      const cell = document.createElement('div');
+      cell.className = 'fab-fret';
+      cell.dataset.note = note;
+      cell.style.cssText = `position:absolute;left:${f*fw+2}px;top:${s*fh+2}px;width:${fw-4}px;height:${fh-4}px;cursor:pointer;border-radius:3px`;
+      // note label (small, faint)
+      const lbl = document.createElement('div');
+      lbl.textContent = note.replace(/\d/,'').replace('#','♯');
+      lbl.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:rgba(255,255,255,.35);font-family:monospace;pointer-events:none';
+      cell.appendChild(lbl);
+      bindFretCell(cell, note);
+      inner.appendChild(cell);
+    }
+  }
+  wrap.appendChild(inner);
+  return wrap;
+}
+
+function bindFretCell(el, note){
+  el.style.touchAction = 'none';
+  el.addEventListener('pointerdown', e=>{
+    e.preventDefault(); e.stopPropagation();
+    try{ el.setPointerCapture(e.pointerId) }catch(_){}
+    el.style.background = 'rgba(199,123,42,.6)';
+    el.classList.add('active');
+    fabPressDown(note);
+  }, {passive:false});
+  el.addEventListener('pointerup', e=>{
+    e.preventDefault(); e.stopPropagation();
+    if(!FAB_STATE.chordMode){ el.style.background=''; el.classList.remove('active'); fabPressUp(note); }
+  }, {passive:false});
+  el.addEventListener('pointercancel', e=>{ el.style.background=''; fabPressUp(note) });
+  el.addEventListener('contextmenu', e=>e.preventDefault());
+  el.addEventListener('touchstart', e=>e.preventDefault(), {passive:false});
+}
+
+function noteNameToMidi(n){
+  const m = n.match(/^([A-G][#b]?)(-?\d+)$/);
+  if(!m) return 60;
+  const root = ROOTS[m[1]]||60;
+  const oct = parseInt(m[2],10);
+  return root - 12*4 + (oct+1)*12; // ROOTS are at octave 4 (midi 60 = C4)
+}
+
+// ============ SECUENCIA DE ACORDES ============
+function getTempoInfo(){
+  const bpm = parseInt(document.getElementById('fabBpm')?.value || 100);
+  const beatsPerBar = parseInt(document.getElementById('fabTimeSig')?.value || 4);
+  const bars = parseFloat(document.getElementById('fabBars')?.value || 1);
+  const secondsPerBeat = 60 / bpm;
+  const secondsPerBar = secondsPerBeat * beatsPerBar;
+  const durationSec = bars * secondsPerBar;
+  return { bpm, beatsPerBar, bars, secondsPerBeat, secondsPerBar, durationSec };
+}
+function updateSequenceTimeInfo(){
+  const t = getTempoInfo();
+  const info = document.getElementById('fabDurInfo');
+  if(info) info.textContent = t.bars + ' comp = ' + t.durationSec.toFixed(2) + ' s · ' + t.bpm + ' BPM';
+}
+
+function fabCaptureChord(){
+  const active = [...FAB_STATE.activeNotes.keys()];
+  if(active.length === 0){
+    const s = document.getElementById('fabStatus');
+    s.innerHTML = '<span style="color:var(--warn)">⚠️ Activa "🎵 Sostener" y toca un acorde primero</span>';
+    return;
+  }
+  const detected = active.length >= 2 ? detectChordDetailed(active) : null;
+  const name = detected && !detected.unknown
+    ? detected.root + detected.quality + detected.slash
+    : active.map(n=>n.replace('#','♯')).join('-');
+  const t = getTempoInfo();
+  FAB_STATE.sequence.push({
+    notes: [...active],
+    name,
+    detail: detected,
+    bars: t.bars,
+    bpm: t.bpm,
+    timeSig: t.beatsPerBar,
+    durationSec: t.durationSec
+  });
+  renderSequence();
+}
+
+function renderSequence(){
+  const el = document.getElementById('fabSeq');
+  if(!el) return;
+  if(FAB_STATE.sequence.length === 0){
+    el.innerHTML = '<span style="color:var(--muted);font-size:.78rem">📼 Graba acordes con ⏺ y arma una secuencia</span>';
+    updateSequenceTimeInfo();
+    return;
+  }
+  const totalBars = FAB_STATE.sequence.reduce((s,c)=>s+(c.bars||1),0);
+  const totalSec = FAB_STATE.sequence.reduce((s,c)=>s+(c.durationSec||c.duration||1),0);
+  el.innerHTML = FAB_STATE.sequence.map((c,i)=>{
+    const barsLabel = c.bars < 1 ? (c.bars===0.5?'½':'¼') : c.bars;
+    return '<span class="chord-pill" style="font-size:.78rem;padding:.25rem .55rem;display:inline-flex;align-items:center;gap:.3rem" onclick="fabPlayStep('+i+')" title="Click para escuchar · X para borrar">'+
+      '<b>'+c.name+'</b>'+
+      '<span style="color:var(--muted);font-size:.68rem">'+barsLabel+' c.</span>'+
+      '<span onclick="event.stopPropagation();fabRemoveStep('+i+')" style="color:var(--err);cursor:pointer;padding:0 .2rem">✕</span>'+
+    '</span>';
+  }).join('') + ' <span style="color:var(--muted);font-size:.7rem">· '+FAB_STATE.sequence.length+' acorde'+(FAB_STATE.sequence.length>1?'s':'')+' · '+totalBars+' comp · '+totalSec.toFixed(1)+'s</span>';
+  updateSequenceTimeInfo();
+}
+
+async function fabPlayStep(i){
+  await ensureAudio();
+  const c = FAB_STATE.sequence[i];
+  if(!c) return;
+  const dur = c.durationSec || c.duration || 1;
+  synth.triggerAttackRelease(c.notes, dur);
+}
+
+function fabRemoveStep(i){
+  FAB_STATE.sequence.splice(i,1);
+  renderSequence();
+}
+
+function fabClearSequence(){
+  if(FAB_STATE.sequence.length === 0) return;
+  if(!confirm('¿Borrar toda la secuencia ('+FAB_STATE.sequence.length+' acordes)?')) return;
+  FAB_STATE.sequence = [];
+  renderSequence();
+}
+
+async function fabPlaySequence(){
+  if(FAB_STATE.sequence.length === 0){
+    document.getElementById('fabStatus').innerHTML = '<span style="color:var(--warn)">⚠️ Graba al menos un acorde primero</span>';
+    return;
+  }
+  await ensureAudio();
+  const t0 = Tone.now();
+  let offset = 0;
+  FAB_STATE.sequence.forEach((c,i)=>{
+    const dur = c.durationSec || c.duration || 1;
+    synth.triggerAttackRelease(c.notes, dur * 0.95, t0 + offset);
+    offset += dur;
+    setTimeout(()=>{
+      const el = document.getElementById('fabSeq').children[i];
+      if(el){ el.style.boxShadow='0 0 12px var(--accent)'; setTimeout(()=>{ if(el)el.style.boxShadow=''; }, dur*1000) }
+    }, (offset - dur) * 1000);
+  });
+  const totalBars = FAB_STATE.sequence.reduce((s,c)=>s+(c.bars||1),0);
+  document.getElementById('fabStatus').innerHTML = '<span style="color:var(--ok)">▶ '+FAB_STATE.sequence.length+' acordes · '+totalBars+' compases · '+offset.toFixed(1)+'s</span>';
+}
+
+function fabAskTutor(){
+  if(FAB_STATE.sequence.length === 0){
+    document.getElementById('fabStatus').innerHTML = '<span style="color:var(--warn)">⚠️ Graba al menos un acorde primero</span>';
+    return;
+  }
+  const firstBpm = FAB_STATE.sequence[0].bpm || 100;
+  const firstTs = FAB_STATE.sequence[0].timeSig || 4;
+  const progression = FAB_STATE.sequence.map(c => c.name).join(' – ');
+  const details = FAB_STATE.sequence.map((c,i) => {
+    const d = c.detail;
+    const notesStr = c.notes.map(n=>n.replace('#','♯')).join(', ');
+    const bars = c.bars || 1;
+    const barsLabel = bars < 1 ? (bars===0.5?'½':'¼') : bars;
+    let line = (i+1) + '. **' + c.name + '** (' + barsLabel + ' compás' + (bars!==1?'es':'') + ') — notas: ' + notesStr;
+    if(d && !d.unknown){
+      line += ' · ' + d.qualityName;
+      if(d.bassFromRoot !== 0) line += ' · ' + d.inversion;
+    }
+    return line;
+  }).join('\n');
+
+  const question = 'Toqué esta secuencia de acordes en el piano a ' + firstBpm + ' BPM en ' + firstTs + '/4:\n\n' + details +
+    '\n\nProgresión completa: **' + progression + '**\n\n' +
+    'Analiza esta progresión: ¿qué función tonal cumple cada acorde?, ¿en qué tonalidad está?, ¿es una progresión conocida (ii-V-I, cadencia andaluza, turnaround, etc.)?, ¿qué escala usar para improvisar encima de cada acorde?, y ¿qué variación o reharmonización me sugerirías?';
+
+  route('tutor');
+  toggleFab();
+  setTimeout(()=>{
+    const input = document.getElementById('tutorInput');
+    input.value = question;
+    tutorSend();
+  }, 300);
+}
+
+// ============ INSTALL HELP MODAL ============
+function openInstallHelp(){document.getElementById('installModal').classList.remove('hidden')}
+function closeInstallHelp(){document.getElementById('installModal').classList.add('hidden')}
+document.getElementById('helpBtn').addEventListener('click',openInstallHelp);
+document.querySelectorAll('#installTabs .tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('#installTabs .tab').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+  const p=t.dataset.plat;
+  document.querySelectorAll('.install-pane').forEach(x=>x.classList.add('hidden'));
+  document.getElementById('install'+p.charAt(0).toUpperCase()+p.slice(1)).classList.remove('hidden');
+}));
+// Auto-select platform based on user agent
+(function(){
+  const ua=navigator.userAgent;
+  let plat='desktop';
+  if(/iPhone|iPad|iPod/.test(ua))plat='ios';
+  else if(/Android/.test(ua))plat='android';
+  const btn=document.querySelector(`#installTabs .tab[data-plat="${plat}"]`);
+  if(btn){document.querySelectorAll('#installTabs .tab').forEach(x=>x.classList.remove('active'));btn.classList.add('active');
+    document.querySelectorAll('.install-pane').forEach(x=>x.classList.add('hidden'));
+    document.getElementById('install'+plat.charAt(0).toUpperCase()+plat.slice(1)).classList.remove('hidden');
+  }
+})();
+function copyUrl(){
+  const u=location.href;
+  if(navigator.clipboard){navigator.clipboard.writeText(u).then(()=>alert('URL copiada al portapapeles:\n'+u))}
+  else{prompt('Copia esta URL:',u)}
+}
+
+// ============ MOBILE SIDEBAR ============
+document.getElementById('menuBtn').addEventListener('click',()=>{
+  document.getElementById('sidebar').classList.remove('hide-mobile');
+  document.getElementById('sidebarBackdrop').classList.remove('hidden');
+});
+document.getElementById('sidebarBackdrop').addEventListener('click',()=>{
+  document.getElementById('sidebar').classList.add('hide-mobile');
+  document.getElementById('sidebarBackdrop').classList.add('hidden');
+});
+
+// ============ PWA ============
+// Service worker registration con actualización forzada
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js', {updateViaCache: 'none'})
+      .then(reg => {
+        console.log('SW registrado:', reg.scope);
+        reg.update(); // check for update on load
+        // Si hay nueva versión instalada, activarla ya
+        reg.addEventListener('updatefound', () => {
+          const nw = reg.installing;
+          if(nw){
+            nw.addEventListener('statechange', () => {
+              if(nw.state === 'installed' && navigator.serviceWorker.controller){
+                console.log('[SW] nueva versión instalada — activando');
+                nw.postMessage('skipWaiting');
+                setTimeout(()=>location.reload(), 500);
+              }
+            });
+          }
+        });
+      })
+      .catch(err => console.warn('SW error:', err));
+    // Chequea updates cada 60s mientras la app está abierta
+    setInterval(() => {
+      navigator.serviceWorker.getRegistration().then(r => r && r.update());
+    }, 60000);
+  });
+}
+
+// Install prompt
+let deferredPrompt = null;
+const installBtn = document.getElementById('installBtn');
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  installBtn.classList.remove('hidden');
+});
+installBtn.addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  installBtn.classList.add('hidden');
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  if (outcome === 'accepted') {
+    const toast = document.createElement('div');
+    toast.className = 'glass fixed bottom-6 right-6 p-4 rounded-xl z-50';
+    toast.innerHTML = '<b>¡Instalada!</b> Encuentra ARMONÍA en tu pantalla de inicio 🎉';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+  }
+  deferredPrompt = null;
+});
+window.addEventListener('appinstalled', () => {
+  installBtn.classList.add('hidden');
+  console.log('ARMONÍA instalada correctamente');
+});
+
+// Detectar si corremos en modo standalone (instalada)
+if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) {
+  document.documentElement.classList.add('standalone');
+}
+
+// Deep-link desde atajos (#lesson, #tutor, etc.)
+if (location.hash) {
+  const r = location.hash.replace('#','');
+  if (ROUTES.includes(r)) setTimeout(() => route(r), 100);
+}
+
+// initial
+applyI18n();
+renderCurriculum();
+buildPiano();
+
+// Welcome toast
+setTimeout(()=>{
+  const toast=document.createElement('div');
+  toast.className='glass fixed bottom-6 right-6 p-4 rounded-xl max-w-sm z-50';
+  toast.style.borderLeft='4px solid var(--accent)';
+  toast.innerHTML=`
+    <div class="flex items-start gap-3">
+      <div style="font-size:1.5rem">💡</div>
+      <div>
+        <div class="font-bold mb-1">Prototipo interactivo</div>
+        <div class="text-xs text-[var(--muted)] mb-2">Explora los 10 módulos. El teclado, el tutor IA, el ear training y el player funcionan con audio real. Haz click en cualquier acorde en azul para escucharlo.</div>
+        <button class="btn btn-ghost text-xs" onclick="this.closest('.glass').remove()">Entendido</button>
+      </div>
+    </div>`;
+  document.body.appendChild(toast);
+  setTimeout(()=>toast.remove(),12000);
+},1000);
+</script>
+</body>
+</html>
