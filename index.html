@@ -118,14 +118,20 @@
     .main-content{padding:1rem!important}
   }
   /* FAB PANEL: flotante en desktop, drawer fijo abajo en móvil */
-  #fabPanel{position:fixed;z-index:40;border-radius:16px;overflow:hidden;box-shadow:0 -4px 30px rgba(0,0,0,.6);background:rgba(14,18,32,.98);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(75,95,140,.25);touch-action:manipulation}
+  #fabPanel{position:fixed;z-index:40;border-radius:16px;overflow:hidden;box-shadow:0 -4px 30px rgba(0,0,0,.6);background:rgba(14,18,32,.98);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(75,95,140,.25);touch-action:manipulation;display:flex;flex-direction:column}
+  #fabPanel #fabBody{flex:0 0 auto;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  /* Alturas FIJAS para que no brinque al cambiar texto */
+  #fabHint,#fabStatus{min-height:36px;display:flex;align-items:center}
+  #fabStatus{flex:1;justify-content:flex-end;text-align:right}
+  #fabSeq{min-height:42px}
   @media (min-width:700px){
     #fabPanel{right:18px;bottom:86px;max-width:calc(100vw - 36px);width:auto}
   }
   @media (max-width:699px){
-    /* Drawer fullwidth: 100% ancho, anclado al fondo, no se mueve */
-    #fabPanel{left:0!important;right:0!important;bottom:0!important;top:auto!important;width:100%!important;max-width:100%!important;border-radius:16px 16px 0 0;padding-bottom:env(safe-area-inset-bottom,0px)}
-    /* Lock total cuando panel abierto — html + body fixed = NO scroll, NO URL-bar collapse */
+    /* Drawer FIJO: altura fija, ancho total, anclado abajo */
+    #fabPanel{left:0!important;right:0!important;bottom:0!important;top:auto!important;width:100%!important;max-width:100%!important;max-height:440px;min-height:440px;border-radius:16px 16px 0 0;padding-bottom:env(safe-area-inset-bottom,0px)}
+    #fabPanel #fabBody{min-height:180px;max-height:180px}
+    /* Lock total html+body = NO scroll, NO URL-bar collapse */
     html.fab-open,body.fab-open{overflow:hidden!important;position:fixed!important;width:100%!important;height:100%!important;top:0;left:0;touch-action:none!important;overscroll-behavior:none!important}
     html.fab-open{-webkit-overflow-scrolling:auto}
   }
@@ -141,7 +147,7 @@
     </div>
     <div>
       <div class="font-bold text-lg leading-none">ARMONÍA</div>
-      <div class="text-xs text-[var(--muted)]">v2.0 · 2026-04-18</div>
+      <div class="text-xs text-[var(--muted)]">v2.1 · 2026-04-18</div>
     </div>
   </div>
 

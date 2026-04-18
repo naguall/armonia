@@ -1,7 +1,7 @@
 // ARMONÍA — Service Worker
 // Cache-first para los recursos del shell de la app, network-first para audio externo y otros fetches.
 
-const CACHE = "armonia-v2-2026-04-18";  // ← bump cuando cambia algo importante
+const CACHE = "armonia-v2.1-2026-04-18b";  // ← bump cuando cambia algo importante
 const SHELL = [
   "./index.html",
   "./manifest.webmanifest",
