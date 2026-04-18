@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <title>ARMONÍA — Aprende armonía a profundidad</title>
 
 <!-- PWA -->
@@ -112,6 +112,16 @@
   @media (max-width:900px){
     .hide-mobile{display:none!important}
     .main-content{padding:1rem!important}
+  }
+  /* FAB PANEL: flotante en desktop, drawer fijo abajo en móvil */
+  #fabPanel{position:fixed;z-index:40;border-radius:16px;overflow:hidden;box-shadow:0 -4px 30px rgba(0,0,0,.6);background:rgba(14,18,32,.98);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(75,95,140,.25);touch-action:manipulation}
+  @media (min-width:700px){
+    #fabPanel{right:18px;bottom:86px;max-width:calc(100vw - 36px);width:auto}
+  }
+  @media (max-width:699px){
+    /* Drawer fullwidth: 100% ancho, anclado al fondo, no se mueve */
+    #fabPanel{left:0!important;right:0!important;bottom:0!important;top:auto!important;width:100%!important;max-width:100%!important;border-radius:16px 16px 0 0;padding-bottom:env(safe-area-inset-bottom,0px)}
+    body.fab-open{overflow:hidden;position:fixed;width:100%}
   }
 </style>
 </head>
@@ -453,11 +463,11 @@
 </section>
 
 <!-- ============ TUTOR IA ============ -->
-<section id="tutor" class="section hidden-section">
-  <div class="grid grid-cols-1 lg:grid-cols-4 gap-5 h-[calc(100vh-160px)]">
+<section id="tutor" class="section hidden-section" style="height:calc(100dvh - 130px);min-height:500px">
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 h-full">
 
-    <!-- CHAT HISTORY SIDEBAR -->
-    <div class="card p-3 flex flex-col overflow-hidden">
+    <!-- CHAT HISTORY SIDEBAR · en móvil es colapsable -->
+    <div id="chatHistoryPanel" class="card p-3 flex flex-col overflow-hidden hidden lg:flex">
       <div class="flex gap-2 mb-3">
         <button class="btn btn-primary flex-1" onclick="newChat()">+ Nueva</button>
         <button class="btn btn-ghost" title="Buscar" onclick="toggleChatSearch()">🔎</button>
@@ -466,21 +476,23 @@
       <div class="text-xs text-[var(--muted)] mb-2 uppercase font-bold px-1">Conversaciones</div>
       <div id="chatList" class="flex-1 overflow-y-auto space-y-1 scrollbar px-1"></div>
       <div class="divider"></div>
-      <div class="text-xs text-[var(--muted)] px-1">💡 Los chats se guardan localmente en tu dispositivo y siguen disponibles offline.</div>
+      <div class="text-xs text-[var(--muted)] px-1">💡 Guardados localmente — offline.</div>
     </div>
 
     <!-- CHAT MAIN -->
-    <div class="card flex flex-col lg:col-span-3 overflow-hidden">
-      <div class="p-4 border-b border-[var(--line)] flex items-center gap-3 flex-wrap">
-        <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background:linear-gradient(135deg,var(--brand) 0%,var(--accent) 100%)">
-          <span class="text-white text-lg">🤖</span>
+    <div class="card flex flex-col lg:col-span-3 overflow-hidden" style="min-height:0">
+      <div class="p-3 border-b border-[var(--line)] flex items-center gap-2 flex-wrap" style="flex:none">
+        <button class="btn btn-ghost lg:hidden" title="Historial" onclick="toggleChatHistory()" style="padding:.4rem .5rem">☰</button>
+        <div class="w-9 h-9 rounded-full flex items-center justify-center" style="background:linear-gradient(135deg,var(--brand) 0%,var(--accent) 100%)">
+          <span class="text-white">🤖</span>
         </div>
         <div class="flex-1 min-w-0">
-          <input id="chatTitleInput" class="font-bold bg-transparent border-0 outline-0 w-full text-[var(--text)]" onchange="renameCurrentChat(this.value)" value="Nueva conversación">
+          <input id="chatTitleInput" class="font-bold bg-transparent border-0 outline-0 w-full text-[var(--text)]" style="font-size:.95rem" onchange="renameCurrentChat(this.value)" value="Nueva conversación">
           <div class="text-xs text-[var(--ok)] flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[var(--ok)]"></span> Tutor en línea · con contexto</div>
         </div>
-        <button class="btn btn-ghost" title="Contexto (lección + partitura)" onclick="toggleTutorContext()">📎</button>
-        <button class="btn btn-ghost" title="Borrar conversación" onclick="deleteCurrentChat()">🗑</button>
+        <button class="btn btn-ghost" style="padding:.4rem .6rem" title="Nueva conversación" onclick="newChat()">➕</button>
+        <button class="btn btn-ghost" style="padding:.4rem .6rem" title="Contexto (lección + partitura)" onclick="toggleTutorContext()">📎</button>
+        <button class="btn btn-ghost" style="padding:.4rem .6rem" title="Borrar conversación" onclick="deleteCurrentChat()">🗑</button>
       </div>
 
       <!-- Context panel (collapsible) -->
@@ -491,10 +503,10 @@
         <div class="chip flex-shrink-0">Nivel 3</div>
       </div>
 
-      <div id="tutorMessages" class="flex-1 overflow-y-auto p-5 space-y-4 scrollbar"></div>
+      <div id="tutorMessages" class="overflow-y-auto p-4 space-y-3 scrollbar" style="flex:1 1 0;min-height:0"></div>
 
       <!-- Quick suggestions -->
-      <div id="tutorSuggestions" class="px-4 pb-2 flex gap-2 overflow-x-auto scrollbar">
+      <div id="tutorSuggestions" class="px-3 pb-2 pt-1 flex gap-2 overflow-x-auto scrollbar" style="flex:none">
         <button class="btn btn-ghost flex-shrink-0 text-sm" onclick="tutorAsk('¿Por qué E♭7 funciona aquí?')">¿Por qué E♭7 funciona?</button>
         <button class="btn btn-ghost flex-shrink-0 text-sm" onclick="tutorAsk('Dame un ejercicio sobre dominantes secundarios')">Dame un ejercicio</button>
         <button class="btn btn-ghost flex-shrink-0 text-sm" onclick="tutorAsk('¿Qué sustitución usaría Bill Evans?')">Sustituciones de Bill Evans</button>
@@ -525,15 +537,13 @@
         <div class="text-center text-xs text-[var(--muted)] mt-2">Notas tocadas: <span id="tutorPianoNotes">—</span></div>
       </div>
 
-      <div class="p-4 border-t border-[var(--line)]">
+      <div class="p-3 border-t border-[var(--line)]" style="flex:none">
         <div class="flex gap-2 items-center">
-          <button class="btn btn-ghost" title="Mini piano" onclick="togglePianoInTutor()">🎹</button>
-          <button class="btn btn-ghost" title="Subir partitura / audio" onclick="alert('Sube un PDF, MusicXML, MIDI o audio — en la versión instalada puedes arrastrar archivos directamente.')">📎</button>
-          <button id="tutorMicBtn" class="btn btn-ghost" title="Grabar voz/melodía" onclick="startTutorMic()">🎤</button>
-          <input id="tutorInput" class="styled flex-1" placeholder="Pregunta o canta la melodía…" onkeydown="if(event.key==='Enter')tutorSend()">
-          <button class="btn btn-primary" onclick="tutorSend()">Enviar ↵</button>
+          <button class="btn btn-ghost" style="padding:.4rem .6rem" title="Mini piano" onclick="togglePianoInTutor()">🎹</button>
+          <button id="tutorMicBtn" class="btn btn-ghost" style="padding:.4rem .6rem" title="Grabar voz/melodía" onclick="startTutorMic()">🎤</button>
+          <input id="tutorInput" class="styled flex-1" style="min-width:0" placeholder="Pregunta o canta la melodía…" onkeydown="if(event.key==='Enter')tutorSend()">
+          <button class="btn btn-primary" style="padding:.4rem .9rem" onclick="tutorSend()">↵</button>
         </div>
-        <div class="text-xs text-[var(--muted)] mt-2">💡 Prueba: "analiza los compases 5-8", "dame un backing para practicar", o canta la melodía con el micrófono 🎤</div>
       </div>
     </div>
   </div>
@@ -1032,7 +1042,7 @@
 <button id="fabInstrument" onclick="toggleFab()" title="Piano / Guitarra" aria-label="instrumento"
   style="position:fixed;right:18px;bottom:18px;width:56px;height:56px;border-radius:28px;background:linear-gradient(135deg,#C77B2A,#E29A4F);border:0;color:#fff;font-size:1.6rem;box-shadow:0 6px 20px rgba(0,0,0,.4);cursor:pointer;z-index:40;transition:transform .15s">🎹</button>
 
-<div id="fabPanel" class="glass" style="display:none;position:fixed;right:18px;bottom:calc(86px + env(safe-area-inset-bottom,0px));z-index:40;border-radius:16px;overflow:hidden;max-width:calc(100vw - 36px);box-shadow:0 20px 50px rgba(0,0,0,.6);touch-action:manipulation;will-change:auto">
+<div id="fabPanel" class="glass" style="display:none">
   <div style="padding:.6rem .9rem;display:flex;align-items:center;gap:.5rem;border-bottom:1px solid var(--line);background:var(--bg2)">
     <button class="btn btn-ghost" style="padding:.3rem .6rem" onclick="fabSetMode('piano')" id="fabTabPiano">🎹 Piano</button>
     <button class="btn btn-ghost" style="padding:.3rem .6rem" onclick="fabSetMode('guitar')" id="fabTabGuitar">🎸 Guitarra</button>
@@ -1046,15 +1056,28 @@
     <div id="fabHint">Toca una nota. <b>Sostener</b> deja la nota sonando hasta que la sueltes.</div>
     <div id="fabStatus"></div>
   </div>
+  <!-- CONTROLES DE TEMPO Y COMPÁS -->
+  <div style="padding:.4rem .9rem;background:var(--bg2);border-top:1px solid var(--line);display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;font-size:.78rem">
+    <label style="color:var(--muted)">BPM</label>
+    <input id="fabBpm" type="number" min="40" max="240" value="100" class="styled" style="width:60px;padding:.2rem .4rem;font-size:.8rem;text-align:center" onchange="updateSequenceTimeInfo()">
+    <label style="color:var(--muted);margin-left:.3rem">Compás</label>
+    <select id="fabTimeSig" class="styled" style="padding:.2rem .3rem;font-size:.78rem" onchange="updateSequenceTimeInfo()">
+      <option value="4">4/4</option><option value="3">3/4</option><option value="6">6/8</option><option value="5">5/4</option>
+    </select>
+    <label style="color:var(--muted);margin-left:.3rem">Dur.</label>
+    <select id="fabBars" class="styled" style="padding:.2rem .3rem;font-size:.78rem" onchange="updateSequenceTimeInfo()">
+      <option value="0.25">¼ compás</option>
+      <option value="0.5">½ compás</option>
+      <option value="1" selected>1 compás</option>
+      <option value="2">2 compases</option>
+      <option value="4">4 compases</option>
+    </select>
+    <span id="fabDurInfo" style="color:var(--muted);margin-left:auto">1 comp = 2.4 s</span>
+  </div>
   <!-- SECUENCIA DE ACORDES -->
   <div style="padding:.5rem .9rem;background:var(--bg3);border-top:1px solid var(--line);display:flex;align-items:center;gap:.4rem;flex-wrap:wrap">
     <button class="btn btn-accent" style="padding:.3rem .7rem;font-size:.82rem" onclick="fabCaptureChord()">⏺ Guardar acorde</button>
     <button class="btn btn-ghost" style="padding:.3rem .5rem;font-size:.82rem" onclick="fabPlaySequence()">▶ Reproducir</button>
-    <select id="fabDuration" class="styled" style="padding:.25rem .4rem;font-size:.78rem" title="Duración por acorde">
-      <option value="2">2s</option><option value="1.5">1.5s</option>
-      <option value="1" selected>1s</option><option value="0.5">0.5s</option>
-      <option value="0.25">0.25s</option>
-    </select>
     <button class="btn btn-ghost" style="padding:.3rem .5rem;font-size:.82rem" onclick="fabClearSequence()" title="Limpiar">🗑</button>
     <button class="btn btn-primary" style="padding:.3rem .6rem;font-size:.82rem;margin-left:auto" onclick="fabAskTutor()">🤖 Preguntar al tutor</button>
   </div>
@@ -1612,6 +1635,25 @@ function tutorSend(){
 }
 function tutorAsk(q){document.getElementById('tutorInput').value=q;tutorSend()}
 function toggleTutorContext(){document.getElementById('tutorContext').classList.toggle('hidden')}
+function toggleChatHistory(){
+  const p = document.getElementById('chatHistoryPanel');
+  p.classList.toggle('hidden');
+  if(!p.classList.contains('hidden')){
+    // en móvil, volver panel en overlay fullscreen
+    p.style.cssText = 'position:fixed;inset:0;z-index:45;background:var(--bg);padding:1rem;overflow-y:auto';
+    // añadir botón de cerrar si no existe
+    if(!p.querySelector('.close-history')){
+      const b = document.createElement('button');
+      b.className='close-history btn btn-ghost';
+      b.style.cssText='position:absolute;top:.7rem;right:.7rem';
+      b.textContent='✕';
+      b.onclick=toggleChatHistory;
+      p.appendChild(b);
+    }
+  } else {
+    p.style.cssText = '';
+  }
+}
 
 // ============ EAR TRAINING ============
 const INTERVALS={"2m":1,"2M":2,"3m":3,"3M":4,"4J":5,"TT":6,"5J":7,"6m":8,"6M":9,"7m":10,"7M":11,"8P":12};
@@ -2048,25 +2090,20 @@ function toggleFab(){
     releaseAllFabNotes();
   }
 }
-// ====== ANTI-JUMP ANDROID: bloquea scroll del body mientras panel abierto ======
+// ====== ANTI-JUMP ANDROID: body-fixed strategy ======
 let _bodyLockState = null;
 function lockBodyScroll(){
   if(_bodyLockState) return;
   _bodyLockState = { y: window.scrollY };
-  document.body.style.position = 'fixed';
+  // Lock via style + class (la clase aplica CSS adicional según viewport)
+  document.body.classList.add('fab-open');
   document.body.style.top = -_bodyLockState.y + 'px';
-  document.body.style.left = '0';
-  document.body.style.right = '0';
-  document.body.style.width = '100%';
 }
 function unlockBodyScroll(){
   if(!_bodyLockState) return;
   const y = _bodyLockState.y;
-  document.body.style.position = '';
+  document.body.classList.remove('fab-open');
   document.body.style.top = '';
-  document.body.style.left = '';
-  document.body.style.right = '';
-  document.body.style.width = '';
   window.scrollTo(0, y);
   _bodyLockState = null;
 }
@@ -2405,6 +2442,21 @@ function noteNameToMidi(n){
 }
 
 // ============ SECUENCIA DE ACORDES ============
+function getTempoInfo(){
+  const bpm = parseInt(document.getElementById('fabBpm')?.value || 100);
+  const beatsPerBar = parseInt(document.getElementById('fabTimeSig')?.value || 4);
+  const bars = parseFloat(document.getElementById('fabBars')?.value || 1);
+  const secondsPerBeat = 60 / bpm;
+  const secondsPerBar = secondsPerBeat * beatsPerBar;
+  const durationSec = bars * secondsPerBar;
+  return { bpm, beatsPerBar, bars, secondsPerBeat, secondsPerBar, durationSec };
+}
+function updateSequenceTimeInfo(){
+  const t = getTempoInfo();
+  const info = document.getElementById('fabDurInfo');
+  if(info) info.textContent = t.bars + ' comp = ' + t.durationSec.toFixed(2) + ' s · ' + t.bpm + ' BPM';
+}
+
 function fabCaptureChord(){
   const active = [...FAB_STATE.activeNotes.keys()];
   if(active.length === 0){
@@ -2416,36 +2468,46 @@ function fabCaptureChord(){
   const name = detected && !detected.unknown
     ? detected.root + detected.quality + detected.slash
     : active.map(n=>n.replace('#','♯')).join('-');
-  const duration = parseFloat(document.getElementById('fabDuration').value || 1);
+  const t = getTempoInfo();
   FAB_STATE.sequence.push({
     notes: [...active],
     name,
     detail: detected,
-    duration
+    bars: t.bars,
+    bpm: t.bpm,
+    timeSig: t.beatsPerBar,
+    durationSec: t.durationSec
   });
   renderSequence();
 }
 
 function renderSequence(){
   const el = document.getElementById('fabSeq');
+  if(!el) return;
   if(FAB_STATE.sequence.length === 0){
     el.innerHTML = '<span style="color:var(--muted);font-size:.78rem">📼 Graba acordes con ⏺ y arma una secuencia</span>';
+    updateSequenceTimeInfo();
     return;
   }
-  el.innerHTML = FAB_STATE.sequence.map((c,i)=>
-    '<span class="chord-pill" style="font-size:.78rem;padding:.25rem .55rem;display:inline-flex;align-items:center;gap:.3rem" onclick="fabPlayStep('+i+')" title="Click para escuchar · X para borrar">'+
+  const totalBars = FAB_STATE.sequence.reduce((s,c)=>s+(c.bars||1),0);
+  const totalSec = FAB_STATE.sequence.reduce((s,c)=>s+(c.durationSec||c.duration||1),0);
+  el.innerHTML = FAB_STATE.sequence.map((c,i)=>{
+    const barsLabel = c.bars < 1 ? (c.bars===0.5?'½':'¼') : c.bars;
+    return '<span class="chord-pill" style="font-size:.78rem;padding:.25rem .55rem;display:inline-flex;align-items:center;gap:.3rem" onclick="fabPlayStep('+i+')" title="Click para escuchar · X para borrar">'+
       '<b>'+c.name+'</b>'+
-      '<span style="color:var(--muted);font-size:.7rem">'+c.duration+'s</span>'+
+      '<span style="color:var(--muted);font-size:.68rem">'+barsLabel+' c.</span>'+
       '<span onclick="event.stopPropagation();fabRemoveStep('+i+')" style="color:var(--err);cursor:pointer;padding:0 .2rem">✕</span>'+
-    '</span>'
-  ).join('') + ' <span style="color:var(--muted);font-size:.7rem">· '+FAB_STATE.sequence.length+' acorde'+(FAB_STATE.sequence.length>1?'s':'')+'</span>';
+    '</span>';
+  }).join('') + ' <span style="color:var(--muted);font-size:.7rem">· '+FAB_STATE.sequence.length+' acorde'+(FAB_STATE.sequence.length>1?'s':'')+' · '+totalBars+' comp · '+totalSec.toFixed(1)+'s</span>';
+  updateSequenceTimeInfo();
 }
 
 async function fabPlayStep(i){
   await ensureAudio();
   const c = FAB_STATE.sequence[i];
   if(!c) return;
-  synth.triggerAttackRelease(c.notes, c.duration);
+  const dur = c.durationSec || c.duration || 1;
+  synth.triggerAttackRelease(c.notes, dur);
 }
 
 function fabRemoveStep(i){
@@ -2469,15 +2531,16 @@ async function fabPlaySequence(){
   const t0 = Tone.now();
   let offset = 0;
   FAB_STATE.sequence.forEach((c,i)=>{
-    synth.triggerAttackRelease(c.notes, c.duration * 0.95, t0 + offset);
-    offset += c.duration;
-    // Visual beat indicator
+    const dur = c.durationSec || c.duration || 1;
+    synth.triggerAttackRelease(c.notes, dur * 0.95, t0 + offset);
+    offset += dur;
     setTimeout(()=>{
       const el = document.getElementById('fabSeq').children[i];
-      if(el){ el.style.boxShadow='0 0 12px var(--accent)'; setTimeout(()=>{ if(el)el.style.boxShadow=''; },c.duration*1000) }
-    }, (offset - c.duration) * 1000);
+      if(el){ el.style.boxShadow='0 0 12px var(--accent)'; setTimeout(()=>{ if(el)el.style.boxShadow=''; }, dur*1000) }
+    }, (offset - dur) * 1000);
   });
-  document.getElementById('fabStatus').innerHTML = '<span style="color:var(--ok)">▶ Reproduciendo '+FAB_STATE.sequence.length+' acordes ('+offset.toFixed(1)+'s)</span>';
+  const totalBars = FAB_STATE.sequence.reduce((s,c)=>s+(c.bars||1),0);
+  document.getElementById('fabStatus').innerHTML = '<span style="color:var(--ok)">▶ '+FAB_STATE.sequence.length+' acordes · '+totalBars+' compases · '+offset.toFixed(1)+'s</span>';
 }
 
 function fabAskTutor(){
@@ -2485,28 +2548,28 @@ function fabAskTutor(){
     document.getElementById('fabStatus').innerHTML = '<span style="color:var(--warn)">⚠️ Graba al menos un acorde primero</span>';
     return;
   }
-  // Construir descripción detallada para el tutor
+  const firstBpm = FAB_STATE.sequence[0].bpm || 100;
+  const firstTs = FAB_STATE.sequence[0].timeSig || 4;
   const progression = FAB_STATE.sequence.map(c => c.name).join(' – ');
   const details = FAB_STATE.sequence.map((c,i) => {
     const d = c.detail;
+    const notesStr = c.notes.map(n=>n.replace('#','♯')).join(', ');
+    const bars = c.bars || 1;
+    const barsLabel = bars < 1 ? (bars===0.5?'½':'¼') : bars;
+    let line = (i+1) + '. **' + c.name + '** (' + barsLabel + ' compás' + (bars!==1?'es':'') + ') — notas: ' + notesStr;
     if(d && !d.unknown){
-      const notesStr = c.notes.map(n=>n.replace('#','♯')).join(', ');
-      let line = (i+1) + '. **' + c.name + '** ('+d.qualityName+', '+c.duration+'s) — notas: ' + notesStr;
+      line += ' · ' + d.qualityName;
       if(d.bassFromRoot !== 0) line += ' · ' + d.inversion;
-      return line;
     }
-    return (i+1) + '. ' + c.name + ' (notas: ' + c.notes.join(', ') + ', '+c.duration+'s)';
+    return line;
   }).join('\n');
 
-  const question = 'Toqué esta secuencia de acordes en el piano:\n\n' + details +
-    '\n\nProgresión: **' + progression + '**\n\n' +
-    'Analiza esta progresión: ¿qué función cumple cada acorde?, ¿hay una tonalidad clara?, ¿qué nombre tiene esta progresión si es reconocible?, ¿qué melodía o idea me sugieres improvisar encima?';
+  const question = 'Toqué esta secuencia de acordes en el piano a ' + firstBpm + ' BPM en ' + firstTs + '/4:\n\n' + details +
+    '\n\nProgresión completa: **' + progression + '**\n\n' +
+    'Analiza esta progresión: ¿qué función tonal cumple cada acorde?, ¿en qué tonalidad está?, ¿es una progresión conocida (ii-V-I, cadencia andaluza, turnaround, etc.)?, ¿qué escala usar para improvisar encima de cada acorde?, y ¿qué variación o reharmonización me sugerirías?';
 
-  // Cambiar a vista tutor
   route('tutor');
-  // Cerrar el fab para no tapar el chat
   toggleFab();
-  // Prellenar input y enviar
   setTimeout(()=>{
     const input = document.getElementById('tutorInput');
     input.value = question;
