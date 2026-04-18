@@ -1032,7 +1032,7 @@
 <button id="fabInstrument" onclick="toggleFab()" title="Piano / Guitarra" aria-label="instrumento"
   style="position:fixed;right:18px;bottom:18px;width:56px;height:56px;border-radius:28px;background:linear-gradient(135deg,#C77B2A,#E29A4F);border:0;color:#fff;font-size:1.6rem;box-shadow:0 6px 20px rgba(0,0,0,.4);cursor:pointer;z-index:40;transition:transform .15s">🎹</button>
 
-<div id="fabPanel" class="glass" style="display:none;position:fixed;right:18px;bottom:86px;z-index:40;border-radius:16px;overflow:hidden;max-width:calc(100vw - 36px);box-shadow:0 20px 50px rgba(0,0,0,.6)">
+<div id="fabPanel" class="glass" style="display:none;position:fixed;right:18px;bottom:calc(86px + env(safe-area-inset-bottom,0px));z-index:40;border-radius:16px;overflow:hidden;max-width:calc(100vw - 36px);box-shadow:0 20px 50px rgba(0,0,0,.6);touch-action:manipulation;will-change:auto">
   <div style="padding:.6rem .9rem;display:flex;align-items:center;gap:.5rem;border-bottom:1px solid var(--line);background:var(--bg2)">
     <button class="btn btn-ghost" style="padding:.3rem .6rem" onclick="fabSetMode('piano')" id="fabTabPiano">🎹 Piano</button>
     <button class="btn btn-ghost" style="padding:.3rem .6rem" onclick="fabSetMode('guitar')" id="fabTabGuitar">🎸 Guitarra</button>
@@ -2024,8 +2024,15 @@ let FAB_STATE = {
 
 function toggleFab(){
   FAB_STATE.open = !FAB_STATE.open;
-  document.getElementById('fabPanel').style.display = FAB_STATE.open ? 'block' : 'none';
-  if(FAB_STATE.open) renderFab();
+  const panel = document.getElementById('fabPanel');
+  panel.style.display = FAB_STATE.open ? 'block' : 'none';
+  // Anti rebote/scroll Android: fija el body y restaura posición al cerrar
+  if(FAB_STATE.open){
+    FAB_STATE._scroll = window.scrollY;
+    renderFab();
+  } else {
+    releaseAllFabNotes();
+  }
 }
 function fabSetMode(m){
   FAB_STATE.mode = m;
@@ -2125,12 +2132,15 @@ function renderFab(){
 
 function buildFabPiano(){
   const container = document.createElement('div');
-  container.style.cssText = 'position:relative;user-select:none;touch-action:none;overflow-x:auto;max-width:calc(100vw - 80px);padding-bottom:4px';
+  // scroll horizontal permitido SOLO con pan-x, taps NO hacen scroll vertical ni zoom
+  container.style.cssText = 'position:relative;user-select:none;-webkit-user-select:none;touch-action:pan-x;overflow-x:auto;overflow-y:hidden;max-width:calc(100vw - 80px);padding-bottom:4px;overscroll-behavior:contain';
   const octaves = FAB_STATE.octaves;
   const whites = ['C','D','E','F','G','A','B'];
   const blackOffsets = {'C#':1,'D#':2,'F#':4,'G#':5,'A#':6};
-  const kw = 36; // key width
-  const kh = 140; // key height
+  // Teclas más grandes en móvil para que sean tocables sin error
+  const isMobile = window.matchMedia('(max-width: 700px)').matches;
+  const kw = isMobile ? 42 : 36;
+  const kh = isMobile ? 150 : 140;
   const totalKeys = whites.length * octaves;
   const inner = document.createElement('div');
   inner.style.cssText = `position:relative;width:${totalKeys*kw}px;height:${kh}px;margin:0 auto`;
@@ -2165,33 +2175,36 @@ function buildFabPiano(){
 }
 
 function bindKey(el, note){
-  // soporte mouse + multi-touch simultáneo
+  el.style.touchAction = 'none'; // la tecla NO permite scroll, solo tap
   el.addEventListener('pointerdown', e=>{
     e.preventDefault();
-    el.setPointerCapture?.(e.pointerId);
+    e.stopPropagation();
+    try{ el.setPointerCapture(e.pointerId) }catch(_){}
     el.classList.add('active');
     fabPressDown(note);
-  });
+  }, {passive:false});
   el.addEventListener('pointerup', e=>{
+    e.preventDefault(); e.stopPropagation();
     if(!FAB_STATE.chordMode){ el.classList.remove('active'); fabPressUp(note); }
     else { setTimeout(()=>{if(!FAB_STATE.activeNotes.has(note))el.classList.remove('active')},50) }
-  });
-  el.addEventListener('pointerleave', e=>{
-    if(!FAB_STATE.chordMode && FAB_STATE.activeNotes.has(note)){ el.classList.remove('active'); fabPressUp(note) }
-  });
+  }, {passive:false});
   el.addEventListener('pointercancel', e=>{ el.classList.remove('active'); fabPressUp(note); });
+  // Evitar gestos del navegador (double-tap zoom, long-press menu)
+  el.addEventListener('contextmenu', e=>e.preventDefault());
+  el.addEventListener('touchstart', e=>e.preventDefault(), {passive:false});
 }
 
 function buildFabGuitar(){
   // Afinación estándar de 6 cuerdas, grave→agudo: E2 A2 D3 G3 B3 E4
   const tuning = ['E2','A2','D3','G3','B3','E4'];
   const frets = FAB_STATE.octaves===1 ? 6 : 12; // 2x = más trastes
-  const fw = 44; // fret width
-  const fh = 24; // string spacing
+  const isMobile = window.matchMedia('(max-width: 700px)').matches;
+  const fw = isMobile ? 52 : 44;  // más grande para dedos
+  const fh = isMobile ? 32 : 24;
   const totalW = (frets+1)*fw;
   const totalH = tuning.length*fh;
   const wrap = document.createElement('div');
-  wrap.style.cssText = `position:relative;user-select:none;touch-action:none;background:linear-gradient(180deg,#6b4823,#4a2f15);border-radius:6px;padding:10px;overflow-x:auto;max-width:calc(100vw - 80px)`;
+  wrap.style.cssText = `position:relative;user-select:none;-webkit-user-select:none;touch-action:pan-x;background:linear-gradient(180deg,#6b4823,#4a2f15);border-radius:6px;padding:10px;overflow-x:auto;overflow-y:hidden;max-width:calc(100vw - 80px);overscroll-behavior:contain`;
   const inner = document.createElement('div');
   inner.style.cssText = `position:relative;width:${totalW}px;height:${totalH}px;margin:0 auto`;
 
@@ -2240,22 +2253,21 @@ function buildFabGuitar(){
 }
 
 function bindFretCell(el, note){
+  el.style.touchAction = 'none';
   el.addEventListener('pointerdown', e=>{
-    e.preventDefault();
-    el.setPointerCapture?.(e.pointerId);
+    e.preventDefault(); e.stopPropagation();
+    try{ el.setPointerCapture(e.pointerId) }catch(_){}
     el.style.background = 'rgba(199,123,42,.6)';
     el.classList.add('active');
     fabPressDown(note);
-  });
+  }, {passive:false});
   el.addEventListener('pointerup', e=>{
+    e.preventDefault(); e.stopPropagation();
     if(!FAB_STATE.chordMode){ el.style.background=''; el.classList.remove('active'); fabPressUp(note); }
-  });
-  el.addEventListener('pointerleave', e=>{
-    if(!FAB_STATE.chordMode && FAB_STATE.activeNotes.has(note)){
-      el.style.background=''; el.classList.remove('active'); fabPressUp(note);
-    }
-  });
+  }, {passive:false});
   el.addEventListener('pointercancel', e=>{ el.style.background=''; fabPressUp(note) });
+  el.addEventListener('contextmenu', e=>e.preventDefault());
+  el.addEventListener('touchstart', e=>e.preventDefault(), {passive:false});
 }
 
 function noteNameToMidi(n){
