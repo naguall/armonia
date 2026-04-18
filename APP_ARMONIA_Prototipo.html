@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
-<title>ARMONÍA — v2.2</title>
+<title>ARMONÍA — v2.3</title>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -160,7 +160,7 @@
     </div>
     <div>
       <div class="font-bold text-lg leading-none">ARMONÍA</div>
-      <div class="text-xs text-[var(--muted)]">v2.2 · 2026-04-18</div>
+      <div class="text-xs text-[var(--muted)]">v2.3 · 2026-04-18</div>
     </div>
   </div>
 
@@ -401,10 +401,24 @@
             <button class="chord-pill" data-chord="eb7">E♭7</button>
             <button class="chord-pill" data-chord="abmaj7">A♭maj7</button>
           </div>
-          <div class="flex gap-2 items-center">
-            <button class="btn btn-primary" onclick="playProgression(['Fm7','Bbm7','Eb7','Abmaj7'])">▶ Reproducir progresión</button>
+          <div class="flex gap-2 items-center flex-wrap">
+            <button class="btn btn-primary" onclick="playProgression(['Fm7','Bbm7','Eb7','Abmaj7'])">▶ Play</button>
             <button class="btn btn-ghost" onclick="playProgression(['Fm7','Bbm7','Eb7','Abmaj7'],true)">🐢 Lento</button>
+            <button class="btn btn-ghost loop-btn" onclick="toggleLoop('[\"Fm7\",\"Bbm7\",\"Eb7\",\"Abmaj7\"]',false)">🔁 Loop</button>
+            <button class="btn btn-ghost loop-btn" onclick="toggleLoop('[\"Fm7\",\"Bbm7\",\"Eb7\",\"Abmaj7\"]',true)" style="font-size:.78rem">🐢🔁 Loop lento</button>
             <span class="text-xs text-[var(--muted)] ml-auto">vi — ii — V — I en A♭</span>
+          </div>
+          <!-- Backing rhythm -->
+          <div class="flex gap-2 items-center flex-wrap mt-3 pt-3" style="border-top:1px solid var(--line)">
+            <button class="btn btn-ghost" id="backingToggle" onclick="toggleBacking()" title="Activar ritmo de fondo">🥁 Ritmo</button>
+            <select id="backingStyleSelect" class="styled" style="padding:.3rem .5rem;font-size:.8rem" onchange="changeBackingStyle()">
+              <option value="">Auto (según estilo)</option>
+              <option value="swing">Swing</option>
+              <option value="bossa">Bossa Nova</option>
+              <option value="latin">Latin / Afrocubano</option>
+              <option value="straight">Straight / Pop</option>
+            </select>
+            <span class="text-xs text-[var(--muted)]">Activa el loop + ritmo para tocar encima</span>
           </div>
         </div>
 
@@ -708,9 +722,11 @@
         <div class="bg-[var(--bg2)] rounded-lg p-5 mb-4">
           <div class="flex items-center justify-between mb-3">
             <div class="text-xs text-[var(--muted)]">SECCIÓN A1 · Compases 1–8</div>
-            <div class="flex gap-2">
-              <button class="btn btn-primary" onclick="playProgression(['Cm7','F7','Bbmaj7','Ebmaj7','Am7b5','D7','Gm','Gm'])">▶ Escuchar</button>
+            <div class="flex gap-2 flex-wrap">
+              <button class="btn btn-primary" onclick="playProgression(['Cm7','F7','Bbmaj7','Ebmaj7','Am7b5','D7','Gm','Gm'])">▶ Play</button>
               <button class="btn btn-ghost" onclick="playProgression(['Cm7','F7','Bbmaj7','Ebmaj7','Am7b5','D7','Gm','Gm'],true)">🐢</button>
+              <button class="btn btn-ghost loop-btn" onclick="toggleLoop('[\"Cm7\",\"F7\",\"Bbmaj7\",\"Ebmaj7\",\"Am7b5\",\"D7\",\"Gm\",\"Gm\"]',false)">🔁 Loop</button>
+              <button class="btn btn-ghost loop-btn" onclick="toggleLoop('[\"Cm7\",\"F7\",\"Bbmaj7\",\"Ebmaj7\",\"Am7b5\",\"D7\",\"Gm\",\"Gm\"]',true)" style="font-size:.78rem">🐢🔁</button>
             </div>
           </div>
 
@@ -1311,14 +1327,175 @@ async function playChord(sym,dur="2n"){
   const notes=parseChord(sym);
   if(notes)synth.triggerAttackRelease(notes,dur);
 }
-async function playProgression(syms,slow=false){
+// ============ LOOP + BACKING SYSTEM ============
+let _loopState = { active:false, stopFn:null, backingActive:false, backingParts:[] };
+
+async function playProgression(syms, slow=false, loop=false){
   await ensureAudio();
-  const t=Tone.now();
-  const beatDur=slow?1.6:.8;
-  syms.forEach((s,i)=>{
-    const notes=parseChord(s);
-    if(notes)synth.triggerAttackRelease(notes,beatDur*.95,t+i*beatDur);
+  stopLoop(); // stop any previous
+  const beatDur = slow ? 1.6 : 0.8;
+  const totalDur = syms.length * beatDur;
+
+  function scheduleOnce(startTime){
+    syms.forEach((s,i)=>{
+      const notes = parseChord(s);
+      if(notes) synth.triggerAttackRelease(notes, beatDur*0.9, startTime + i*beatDur);
+    });
+  }
+
+  if(!loop){
+    scheduleOnce(Tone.now());
+    return;
+  }
+
+  // Loop mode
+  _loopState.active = true;
+  updateLoopUI(true);
+  Tone.Transport.bpm.value = slow ? 75 : 150;
+  Tone.Transport.cancel();
+  Tone.Transport.stop();
+
+  const loopLen = syms.length; // beats
+  const part = new Tone.Sequence((time, idx)=>{
+    const notes = parseChord(syms[idx]);
+    if(notes) synth.triggerAttackRelease(notes, beatDur*0.9, time);
+  }, Array.from({length:loopLen},(_,i)=>i), beatDur + 's').start(0);
+  part.loop = true;
+
+  // Start backing if active
+  if(_loopState.backingActive){
+    startBackingPattern(slow);
+  }
+
+  Tone.Transport.start();
+  _loopState.stopFn = ()=>{
+    part.stop(); part.dispose();
+    stopBackingPattern();
+    Tone.Transport.stop(); Tone.Transport.cancel();
+    _loopState.active = false;
+    updateLoopUI(false);
+  };
+}
+
+function stopLoop(){
+  if(_loopState.stopFn){ _loopState.stopFn(); _loopState.stopFn = null; }
+  _loopState.active = false;
+  updateLoopUI(false);
+}
+
+function toggleLoop(symsStr, slow){
+  if(_loopState.active){ stopLoop(); return; }
+  const syms = JSON.parse(symsStr);
+  playProgression(syms, slow, true);
+}
+
+function updateLoopUI(active){
+  document.querySelectorAll('.loop-btn').forEach(b=>{
+    b.style.background = active ? 'linear-gradient(135deg,var(--accent),var(--accent2))' : '';
+    b.style.color = active ? '#fff' : '';
+    b.textContent = active ? '⏹ Stop' : '🔁 Loop';
   });
+}
+
+// ============ BACKING RHYTHM ENGINE ============
+let _drumSynths = null;
+function ensureDrums(){
+  if(_drumSynths) return;
+  _drumSynths = {
+    kick: new Tone.MembraneSynth({volume:-8, pitchDecay:0.05, octaves:6, envelope:{attack:.001,decay:.3,sustain:0,release:.2}}).toDestination(),
+    snare: new Tone.NoiseSynth({volume:-12, noise:{type:'white'}, envelope:{attack:.001,decay:.15,sustain:0,release:.1}}).toDestination(),
+    hihat: new Tone.MetalSynth({volume:-18, frequency:400, envelope:{attack:.001,decay:.06,sustain:0,release:.03}, harmonicity:5.1, modulationIndex:32, resonance:2000, octaves:1}).toDestination(),
+    ride: new Tone.MetalSynth({volume:-20, frequency:300, envelope:{attack:.001,decay:.25,sustain:0,release:.15}, harmonicity:5.1, modulationIndex:16, resonance:3000, octaves:1.5}).toDestination()
+  };
+}
+
+// Patrones por estilo (16th note grid, 16 steps = 1 compás de 4/4)
+const DRUM_PATTERNS = {
+  swing: {
+    // swing feel: ride on quarters con swing 8ths, kick on 1&3, snare brush on 2&4
+    ride:   [1,0,0,0, 1,0,0.4,0, 1,0,0,0, 1,0,0.4,0],
+    kick:   [1,0,0,0, 0,0,0,0, 0.7,0,0,0, 0,0,0,0],
+    snare:  [0,0,0,0, 1,0,0,0, 0,0,0,0, 1,0,0,0],
+    hihat:  [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0],
+    swing: 0.6
+  },
+  bossa: {
+    // bossa nova: kick syncopated, cross-stick on 2&4, hihats steady
+    ride:   [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0],
+    kick:   [1,0,0,0, 0,0,1,0, 0,0,1,0, 0,0,0,0],
+    snare:  [0,0,0,0, 0.5,0,0,0, 0,0,0,0, 0.5,0,0,0],
+    hihat:  [1,0,1,0, 1,0,1,0, 1,0,1,0, 1,0,1,0],
+    swing: 0
+  },
+  latin: {
+    // latin/afrocuban: tumbao kick, clave-ish snare
+    ride:   [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0],
+    kick:   [1,0,0,1, 0,0,1,0, 0,0,1,0, 0,1,0,0],
+    snare:  [0,0,0,0, 1,0,0,0, 0,0,0,0, 0,0,1,0],
+    hihat:  [1,0,1,0, 1,0,1,0, 1,0,1,0, 1,0,1,0],
+    swing: 0
+  },
+  straight: {
+    // pop/rock: 4 on the floor, snare 2&4
+    ride:   [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0],
+    kick:   [1,0,0,0, 0,0,0,0, 1,0,0,0, 0,0,0,0],
+    snare:  [0,0,0,0, 1,0,0,0, 0,0,0,0, 1,0,0,0],
+    hihat:  [1,0,1,0, 1,0,1,0, 1,0,1,0, 1,0,1,0],
+    swing: 0
+  }
+};
+
+function getBackingStyle(){
+  // Map app style to drum pattern
+  const style = document.getElementById('styleSelect')?.value || 'jazz';
+  const map = { classical:'straight', jazz:'swing', pop:'straight', latin:'latin', film:'straight' };
+  const override = document.getElementById('backingStyleSelect')?.value;
+  return override || map[style] || 'swing';
+}
+
+function startBackingPattern(slow){
+  ensureDrums();
+  stopBackingPattern();
+  const pat = DRUM_PATTERNS[getBackingStyle()];
+  Tone.Transport.swing = pat.swing || 0;
+  Tone.Transport.swingSubdivision = '8n';
+
+  const stepDur = '16n';
+  const seq = new Tone.Sequence((time, step)=>{
+    if(pat.kick[step])   _drumSynths.kick.triggerAttackRelease('C1', '8n', time, pat.kick[step]);
+    if(pat.snare[step])  _drumSynths.snare.triggerAttackRelease('16n', time, pat.snare[step]);
+    if(pat.hihat[step])  _drumSynths.hihat.triggerAttackRelease('32n', time, pat.hihat[step]);
+    if(pat.ride[step])   _drumSynths.ride.triggerAttackRelease('16n', time, pat.ride[step]);
+  }, Array.from({length:16},(_,i)=>i), stepDur).start(0);
+  seq.loop = true;
+  _loopState.backingParts.push(seq);
+}
+
+function stopBackingPattern(){
+  _loopState.backingParts.forEach(p=>{ p.stop(); p.dispose(); });
+  _loopState.backingParts = [];
+  Tone.Transport.swing = 0;
+}
+
+function toggleBacking(){
+  _loopState.backingActive = !_loopState.backingActive;
+  const btn = document.getElementById('backingToggle');
+  if(btn){
+    btn.style.background = _loopState.backingActive ? 'linear-gradient(135deg,var(--brand),var(--brand2))' : '';
+    btn.style.color = _loopState.backingActive ? '#fff' : '';
+  }
+  if(_loopState.active){
+    // Ya hay loop corriendo — start/stop backing en caliente
+    if(_loopState.backingActive) startBackingPattern(false);
+    else stopBackingPattern();
+  }
+}
+
+function changeBackingStyle(){
+  if(_loopState.active && _loopState.backingActive){
+    stopBackingPattern();
+    startBackingPattern(false);
+  }
 }
 async function playStyleDemo(style){
   await ensureAudio();
@@ -1546,7 +1723,8 @@ async function tutorReplyAI(userText){
     // [PLAY:…] → botón
     text = text.replace(/\[PLAY:([^\]]+)\]/g, (_,chords)=>{
       const arr = chords.split(',').map(s=>s.trim()).filter(Boolean);
-      return `<button class="chord-pill" style="margin:.3rem 0" onclick='playProgression(${JSON.stringify(arr)})'>▶ ${arr.join(' · ')}</button>`;
+      const id = 'prog_'+Math.random().toString(36).slice(2,8);
+      return `<button class="chord-pill" style="margin:.3rem 0" onclick='playProgression(window._progs["${id}"])' id="${id}">▶ ${arr.join(' · ')}</button> <button class="chord-pill loop-btn" style="margin:.3rem 0;font-size:.75rem" onclick='toggleLoop(JSON.stringify(window._progs["${id}"]),false)'>🔁</button><script>window._progs=window._progs||{};window._progs["${id}"]=${JSON.stringify(arr)};<\/script>`;
     });
     // Convertir markdown básico
     text = text.replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/\*([^*]+)\*/g,'<i>$1</i>');
