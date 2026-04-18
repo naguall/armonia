@@ -1046,6 +1046,19 @@
     <div id="fabHint">Toca una nota. <b>Sostener</b> deja la nota sonando hasta que la sueltes.</div>
     <div id="fabStatus"></div>
   </div>
+  <!-- SECUENCIA DE ACORDES -->
+  <div style="padding:.5rem .9rem;background:var(--bg3);border-top:1px solid var(--line);display:flex;align-items:center;gap:.4rem;flex-wrap:wrap">
+    <button class="btn btn-accent" style="padding:.3rem .7rem;font-size:.82rem" onclick="fabCaptureChord()">⏺ Guardar acorde</button>
+    <button class="btn btn-ghost" style="padding:.3rem .5rem;font-size:.82rem" onclick="fabPlaySequence()">▶ Reproducir</button>
+    <select id="fabDuration" class="styled" style="padding:.25rem .4rem;font-size:.78rem" title="Duración por acorde">
+      <option value="2">2s</option><option value="1.5">1.5s</option>
+      <option value="1" selected>1s</option><option value="0.5">0.5s</option>
+      <option value="0.25">0.25s</option>
+    </select>
+    <button class="btn btn-ghost" style="padding:.3rem .5rem;font-size:.82rem" onclick="fabClearSequence()" title="Limpiar">🗑</button>
+    <button class="btn btn-primary" style="padding:.3rem .6rem;font-size:.82rem;margin-left:auto" onclick="fabAskTutor()">🤖 Preguntar al tutor</button>
+  </div>
+  <div id="fabSeq" style="padding:.5rem .9rem;background:var(--bg3);border-top:1px solid var(--line);min-height:24px;display:flex;align-items:center;gap:.3rem;flex-wrap:wrap;font-size:.82rem"></div>
 </div>
 
 <!-- INSTALL HELP MODAL -->
@@ -2019,20 +2032,53 @@ let FAB_STATE = {
   mode: 'piano',       // 'piano' | 'guitar'
   octaves: 1,          // 1 | 2
   chordMode: false,    // true = sostener notas (acordes)
-  activeNotes: new Map() // note → true (mientras está pulsada)
+  activeNotes: new Map(), // note → true (mientras está pulsada)
+  sequence: []         // [{notes:['C4','E4','G4'], name:'C mayor', duration:1}, …]
 };
 
 function toggleFab(){
   FAB_STATE.open = !FAB_STATE.open;
   const panel = document.getElementById('fabPanel');
   panel.style.display = FAB_STATE.open ? 'block' : 'none';
-  // Anti rebote/scroll Android: fija el body y restaura posición al cerrar
   if(FAB_STATE.open){
-    FAB_STATE._scroll = window.scrollY;
+    lockBodyScroll();
     renderFab();
   } else {
+    unlockBodyScroll();
     releaseAllFabNotes();
   }
+}
+// ====== ANTI-JUMP ANDROID: bloquea scroll del body mientras panel abierto ======
+let _bodyLockState = null;
+function lockBodyScroll(){
+  if(_bodyLockState) return;
+  _bodyLockState = { y: window.scrollY };
+  document.body.style.position = 'fixed';
+  document.body.style.top = -_bodyLockState.y + 'px';
+  document.body.style.left = '0';
+  document.body.style.right = '0';
+  document.body.style.width = '100%';
+}
+function unlockBodyScroll(){
+  if(!_bodyLockState) return;
+  const y = _bodyLockState.y;
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.left = '';
+  document.body.style.right = '';
+  document.body.style.width = '';
+  window.scrollTo(0, y);
+  _bodyLockState = null;
+}
+// Re-anclar el panel al visualViewport si cambia (teclado, rotación)
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize', ()=>{
+    if(!FAB_STATE.open) return;
+    const panel = document.getElementById('fabPanel');
+    const vv = window.visualViewport;
+    const fromBottom = window.innerHeight - vv.height - vv.offsetTop;
+    panel.style.bottom = (86 + Math.max(0, fromBottom)) + 'px';
+  });
 }
 function fabSetMode(m){
   FAB_STATE.mode = m;
@@ -2052,32 +2098,111 @@ function toggleOctaves(){
   document.getElementById('fabOctaveBtn').style.color = FAB_STATE.octaves===2 ? '#fff' : '';
   renderFab();
 }
+// ====== DETECCIÓN AVANZADA DE ACORDES CON INVERSIONES ======
+const CHORD_SHAPES = {
+  '0,4,7':      {sym:'',         name:'mayor'},
+  '0,3,7':      {sym:'m',        name:'menor'},
+  '0,3,6':      {sym:'°',        name:'disminuida'},
+  '0,4,8':      {sym:'+',        name:'aumentada'},
+  '0,5,7':      {sym:'sus4',     name:'suspendida 4'},
+  '0,2,7':      {sym:'sus2',     name:'suspendida 2'},
+  '0,4,7,11':   {sym:'maj7',     name:'mayor séptima'},
+  '0,4,7,10':   {sym:'7',        name:'dominante séptima'},
+  '0,3,7,10':   {sym:'m7',       name:'menor séptima'},
+  '0,3,6,10':   {sym:'m7♭5',     name:'semi-disminuida'},
+  '0,3,6,9':    {sym:'°7',       name:'séptima disminuida'},
+  '0,3,7,11':   {sym:'mMaj7',    name:'menor mayor séptima'},
+  '0,4,8,10':   {sym:'7♯5',      name:'séptima aumentada'},
+  '0,4,7,14':   {sym:'add9',     name:'mayor add9'},
+  '0,3,7,14':   {sym:'m(add9)',  name:'menor add9'},
+  '0,4,7,10,14':{sym:'9',        name:'novena dominante'},
+  '0,4,7,11,14':{sym:'maj9',     name:'mayor novena'},
+  '0,3,7,10,14':{sym:'m9',       name:'menor novena'},
+  '0,4,7,10,14,17':{sym:'11',    name:'dominante oncena'},
+  '0,4,7,10,14,21':{sym:'13',    name:'dominante trecena'},
+  '0,5,10':     {sym:'4(cuartal)', name:'cuartal tríada'},
+  '0,5,10,15':  {sym:'4(cuartal)', name:'cuartal'},
+};
+
+// Dado un intervalo desde la raíz, devuelve qué nota acordal es
+function chordToneFromRoot(interval){
+  const map = {0:'fundamental',3:'3ª',4:'3ª',5:'4ª',6:'♭5',7:'5ª',8:'♯5',9:'6ª',10:'♭7',11:'7ª',14:'9ª'};
+  return map[interval] || null;
+}
+function inversionLabel(interval){
+  // interval = distancia en semitonos entre raíz y bajo
+  if(interval === 0) return {label:'fundamental', sym:''};
+  if(interval === 3 || interval === 4) return {label:'1ª inv. (3ª en el bajo)', sym:'/3'};
+  if(interval === 7) return {label:'2ª inv. (5ª en el bajo)', sym:'/5'};
+  if(interval === 10 || interval === 11) return {label:'3ª inv. (7ª en el bajo)', sym:'/7'};
+  if(interval === 8) return {label:'♯5 en el bajo', sym:'/♯5'};
+  if(interval === 9) return {label:'6ª en el bajo', sym:'/6'};
+  if(interval === 14 || interval === 2) return {label:'9ª en el bajo', sym:'/9'};
+  if(interval === 5) return {label:'4ª en el bajo', sym:'/4'};
+  if(interval === 6) return {label:'♭5 en el bajo', sym:'/♭5'};
+  return {label:'bajo no acordal', sym:''};
+}
+
+function detectChordDetailed(noteNames){
+  if(noteNames.length < 2) return null;
+  // orden por MIDI real → bajo es la nota más grave que toca
+  const midis = noteNames.map(n=>noteNameToMidi(n)).sort((a,b)=>a-b);
+  const bass = midis[0];
+  const bassPc = ((bass%12)+12)%12;
+  const pcs = [...new Set(midis.map(m=>((m%12)+12)%12))].sort((a,b)=>a-b);
+  const candidates = [];
+  for(const rootPc of pcs){
+    const ivs = pcs.map(p=>(p - rootPc + 12) % 12).sort((a,b)=>a-b).join(',');
+    const shape = CHORD_SHAPES[ivs];
+    if(shape){
+      const bassFromRoot = (bassPc - rootPc + 12) % 12;
+      const inv = inversionLabel(bassFromRoot);
+      const score = (bassFromRoot===0 ? 200 : 0)  // root position preferida
+                  + (shape.sym.length < 4 ? 30 : 10) // prefiere nombres cortos (simple)
+                  + pcs.length*5; // más notas = identificación más fuerte
+      candidates.push({
+        root: NOTE_MAP[rootPc],
+        rootPc,
+        quality: shape.sym,
+        qualityName: shape.name,
+        bass: NOTE_MAP[bassPc],
+        bassPc,
+        bassFromRoot,
+        inversion: inv.label,
+        inversionSym: inv.sym,
+        slash: bassPc===rootPc ? '' : ('/' + NOTE_MAP[bassPc]),
+        score
+      });
+    }
+  }
+  if(candidates.length === 0) return { unknown: true, pcs };
+  candidates.sort((a,b) => b.score - a.score);
+  return candidates[0];
+}
+
 function updateFabStatus(){
   const active = [...FAB_STATE.activeNotes.keys()];
   const el = document.getElementById('fabStatus');
-  if(active.length===0){el.textContent=''; return}
-  // detect chord
-  let chord = '';
-  if(active.length>=2){
-    const pcs = active.map(n=>ROOTS[n.replace(/\d/,'')]%12).sort((a,b)=>a-b);
-    const uniq = [...new Set(pcs)];
-    for(const root of uniq){
-      const ivs = uniq.map(p=>(p-root+12)%12).sort((a,b)=>a-b).join();
-      const rn = NOTE_MAP[root];
-      if(ivs==="0,4,7") chord=rn+' mayor';
-      else if(ivs==="0,3,7") chord=rn+'m';
-      else if(ivs==="0,4,7,11") chord=rn+'maj7';
-      else if(ivs==="0,4,7,10") chord=rn+'7';
-      else if(ivs==="0,3,7,10") chord=rn+'m7';
-      else if(ivs==="0,3,6,10") chord=rn+'m7♭5';
-      else if(ivs==="0,3,6") chord=rn+'°';
-      else if(ivs==="0,4,8") chord=rn+'+';
-      else if(ivs==="0,5,7") chord=rn+'sus4';
-      else if(ivs==="0,4,7,14"||ivs==="0,2,4,7") chord=rn+'add9';
-      if(chord) break;
-    }
+  if(active.length === 0){el.innerHTML=''; return}
+  const noteList = active.map(n=>n.replace('#','♯')).sort((a,b)=>noteNameToMidi(a.replace('♯','#'))-noteNameToMidi(b.replace('♯','#')));
+  if(active.length === 1){
+    el.innerHTML = '<span style="color:#BCD0EA">Nota:</span> <b>'+noteList[0]+'</b>';
+    return;
   }
-  el.innerHTML = active.map(n=>n.replace('#','♯')).join(' · ') + (chord?' → <b style="color:var(--accent2)">'+chord+'</b>':'');
+  const d = detectChordDetailed(active);
+  if(!d || d.unknown){
+    el.innerHTML = '<span style="color:#BCD0EA">Notas:</span> '+noteList.join(' · ')+' <span style="color:var(--muted)">(sonoridad no estándar)</span>';
+    return;
+  }
+  // Construir display
+  const chordName = '<b style="color:var(--accent2);font-size:1.05rem">' + d.root + d.quality + d.slash + '</b>';
+  const fullName = d.qualityName + (d.slash ? ' en ' + d.bass : '');
+  const invChip = d.bassFromRoot === 0
+    ? ''
+    : ' <span style="background:rgba(199,123,42,.25);color:#F2C68A;padding:.1rem .45rem;border-radius:4px;font-size:.72rem;margin-left:.3rem">'+d.inversion+'</span>';
+  const notesLine = '<span style="color:var(--muted);font-size:.72rem">'+noteList.join('-')+'</span>';
+  el.innerHTML = chordName + invChip + '<br>' +
+                 '<span style="color:#BCD0EA;font-size:.78rem">'+fullName+'</span> · ' + notesLine;
 }
 
 async function fabPlay(note){
@@ -2122,12 +2247,13 @@ function renderFab(){
   document.getElementById('fabTabPiano').style.background = FAB_STATE.mode==='piano' ? 'rgba(46,92,138,.3)' : '';
   document.getElementById('fabTabGuitar').style.background = FAB_STATE.mode==='guitar' ? 'rgba(199,123,42,.3)' : '';
   document.getElementById('fabHint').innerHTML = FAB_STATE.mode==='piano'
-    ? (FAB_STATE.chordMode ? 'Toca varias teclas — <b>se mantienen sonando</b> hasta que las toques otra vez.' : 'Mantén pulsada la tecla para sostener. Activa <b>Sostener</b> para construir acordes.')
-    : (FAB_STATE.chordMode ? 'Toca varios trastes — acordes de guitarra (sostenidos).' : 'Cada traste es una nota. Afinación estándar EADGBE.');
+    ? (FAB_STATE.chordMode ? 'Toca varias teclas — <b>se mantienen sonando</b> hasta que las toques otra vez. Luego ⏺ Guardar acorde.' : 'Mantén pulsada la tecla para sostener. Activa <b>Sostener</b> para construir acordes.')
+    : (FAB_STATE.chordMode ? 'Toca varios trastes — acordes de guitarra (sostenidos). Luego ⏺ Guardar acorde.' : 'Cada traste es una nota. Afinación estándar EADGBE.');
   releaseAllFabNotes();
   b.innerHTML = '';
   if(FAB_STATE.mode==='piano') b.appendChild(buildFabPiano());
   else b.appendChild(buildFabGuitar());
+  renderSequence();
 }
 
 function buildFabPiano(){
@@ -2276,6 +2402,116 @@ function noteNameToMidi(n){
   const root = ROOTS[m[1]]||60;
   const oct = parseInt(m[2],10);
   return root - 12*4 + (oct+1)*12; // ROOTS are at octave 4 (midi 60 = C4)
+}
+
+// ============ SECUENCIA DE ACORDES ============
+function fabCaptureChord(){
+  const active = [...FAB_STATE.activeNotes.keys()];
+  if(active.length === 0){
+    const s = document.getElementById('fabStatus');
+    s.innerHTML = '<span style="color:var(--warn)">⚠️ Activa "🎵 Sostener" y toca un acorde primero</span>';
+    return;
+  }
+  const detected = active.length >= 2 ? detectChordDetailed(active) : null;
+  const name = detected && !detected.unknown
+    ? detected.root + detected.quality + detected.slash
+    : active.map(n=>n.replace('#','♯')).join('-');
+  const duration = parseFloat(document.getElementById('fabDuration').value || 1);
+  FAB_STATE.sequence.push({
+    notes: [...active],
+    name,
+    detail: detected,
+    duration
+  });
+  renderSequence();
+}
+
+function renderSequence(){
+  const el = document.getElementById('fabSeq');
+  if(FAB_STATE.sequence.length === 0){
+    el.innerHTML = '<span style="color:var(--muted);font-size:.78rem">📼 Graba acordes con ⏺ y arma una secuencia</span>';
+    return;
+  }
+  el.innerHTML = FAB_STATE.sequence.map((c,i)=>
+    '<span class="chord-pill" style="font-size:.78rem;padding:.25rem .55rem;display:inline-flex;align-items:center;gap:.3rem" onclick="fabPlayStep('+i+')" title="Click para escuchar · X para borrar">'+
+      '<b>'+c.name+'</b>'+
+      '<span style="color:var(--muted);font-size:.7rem">'+c.duration+'s</span>'+
+      '<span onclick="event.stopPropagation();fabRemoveStep('+i+')" style="color:var(--err);cursor:pointer;padding:0 .2rem">✕</span>'+
+    '</span>'
+  ).join('') + ' <span style="color:var(--muted);font-size:.7rem">· '+FAB_STATE.sequence.length+' acorde'+(FAB_STATE.sequence.length>1?'s':'')+'</span>';
+}
+
+async function fabPlayStep(i){
+  await ensureAudio();
+  const c = FAB_STATE.sequence[i];
+  if(!c) return;
+  synth.triggerAttackRelease(c.notes, c.duration);
+}
+
+function fabRemoveStep(i){
+  FAB_STATE.sequence.splice(i,1);
+  renderSequence();
+}
+
+function fabClearSequence(){
+  if(FAB_STATE.sequence.length === 0) return;
+  if(!confirm('¿Borrar toda la secuencia ('+FAB_STATE.sequence.length+' acordes)?')) return;
+  FAB_STATE.sequence = [];
+  renderSequence();
+}
+
+async function fabPlaySequence(){
+  if(FAB_STATE.sequence.length === 0){
+    document.getElementById('fabStatus').innerHTML = '<span style="color:var(--warn)">⚠️ Graba al menos un acorde primero</span>';
+    return;
+  }
+  await ensureAudio();
+  const t0 = Tone.now();
+  let offset = 0;
+  FAB_STATE.sequence.forEach((c,i)=>{
+    synth.triggerAttackRelease(c.notes, c.duration * 0.95, t0 + offset);
+    offset += c.duration;
+    // Visual beat indicator
+    setTimeout(()=>{
+      const el = document.getElementById('fabSeq').children[i];
+      if(el){ el.style.boxShadow='0 0 12px var(--accent)'; setTimeout(()=>{ if(el)el.style.boxShadow=''; },c.duration*1000) }
+    }, (offset - c.duration) * 1000);
+  });
+  document.getElementById('fabStatus').innerHTML = '<span style="color:var(--ok)">▶ Reproduciendo '+FAB_STATE.sequence.length+' acordes ('+offset.toFixed(1)+'s)</span>';
+}
+
+function fabAskTutor(){
+  if(FAB_STATE.sequence.length === 0){
+    document.getElementById('fabStatus').innerHTML = '<span style="color:var(--warn)">⚠️ Graba al menos un acorde primero</span>';
+    return;
+  }
+  // Construir descripción detallada para el tutor
+  const progression = FAB_STATE.sequence.map(c => c.name).join(' – ');
+  const details = FAB_STATE.sequence.map((c,i) => {
+    const d = c.detail;
+    if(d && !d.unknown){
+      const notesStr = c.notes.map(n=>n.replace('#','♯')).join(', ');
+      let line = (i+1) + '. **' + c.name + '** ('+d.qualityName+', '+c.duration+'s) — notas: ' + notesStr;
+      if(d.bassFromRoot !== 0) line += ' · ' + d.inversion;
+      return line;
+    }
+    return (i+1) + '. ' + c.name + ' (notas: ' + c.notes.join(', ') + ', '+c.duration+'s)';
+  }).join('\n');
+
+  const question = 'Toqué esta secuencia de acordes en el piano:\n\n' + details +
+    '\n\nProgresión: **' + progression + '**\n\n' +
+    'Analiza esta progresión: ¿qué función cumple cada acorde?, ¿hay una tonalidad clara?, ¿qué nombre tiene esta progresión si es reconocible?, ¿qué melodía o idea me sugieres improvisar encima?';
+
+  // Cambiar a vista tutor
+  route('tutor');
+  // Cerrar el fab para no tapar el chat
+  toggleFab();
+  // Prellenar input y enviar
+  setTimeout(()=>{
+    const input = document.getElementById('tutorInput');
+    input.value = question;
+    tutorSend();
+  }, 300);
 }
 
 // ============ INSTALL HELP MODAL ============
