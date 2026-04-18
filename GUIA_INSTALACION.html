@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARMONÍA — Guía rápida de instalación y Tutor IA</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root{--brand:#2E5C8A;--brand2:#4A7FB8;--accent:#C77B2A;--accent2:#E29A4F;--bg:#0E1220;--bg2:#141A2E;--bg3:#1C2541;--panel:#1E2A44;--line:#2B3957;--text:#E7ECF5;--muted:#8B97B2;--ok:#4CAF8E;--warn:#E6B450;--err:#E06060;}
+  body{margin:0;background:radial-gradient(1200px 600px at 15% -10%,#1a2547 0%,transparent 60%),radial-gradient(900px 500px at 110% 10%,#2a1a3d 0%,transparent 55%),var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.6}
+  .brand-grad{background:linear-gradient(135deg,var(--brand) 0%,var(--accent) 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px}
+  .chip{display:inline-flex;align-items:center;gap:.35rem;padding:.25rem .6rem;border-radius:999px;font-size:.78rem;font-weight:600;background:rgba(46,92,138,.18);color:#BCD0EA;border:1px solid rgba(74,127,184,.35)}
+  .chip-accent{background:rgba(199,123,42,.18);color:#F2C68A;border-color:rgba(226,154,79,.4)}
+  .chip-ok{background:rgba(76,175,142,.18);color:#8FE4C6;border-color:rgba(76,175,142,.4)}
+  .chip-warn{background:rgba(230,164,80,.18);color:#F5D092;border-color:rgba(230,164,80,.4)}
+  .step{display:flex;gap:1rem;margin-bottom:1rem}
+  .step-num{flex:none;width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--brand),var(--brand2));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff}
+  .step-alt .step-num{background:linear-gradient(135deg,var(--accent),var(--accent2))}
+  h1{font-size:2.4rem;font-weight:800;margin:0 0 .3rem}
+  h2{font-size:1.6rem;font-weight:800;margin:2rem 0 1rem;display:flex;gap:.6rem;align-items:center}
+  h3{font-size:1.15rem;font-weight:700;margin:1.2rem 0 .5rem;color:var(--accent2)}
+  code,kbd,pre{font-family:ui-monospace,"SF Mono",Consolas,monospace;font-size:.88rem}
+  code{background:var(--bg3);padding:.15rem .4rem;border-radius:4px;color:#F2C68A}
+  pre{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:1rem;overflow-x:auto;line-height:1.45}
+  pre code{background:none;padding:0;color:#E7ECF5}
+  .callout{padding:1rem 1.2rem;border-radius:10px;border-left:4px solid var(--accent);background:rgba(199,123,42,.08);margin:1rem 0}
+  .callout-ok{border-color:var(--ok);background:rgba(76,175,142,.08)}
+  .callout-warn{border-color:var(--warn);background:rgba(230,164,80,.08)}
+  .callout-err{border-color:var(--err);background:rgba(224,96,96,.08)}
+  table{width:100%;border-collapse:collapse;margin:1rem 0}
+  th,td{padding:.6rem .8rem;text-align:left;border-bottom:1px solid var(--line);font-size:.92rem;vertical-align:top}
+  th{color:var(--accent2);font-weight:700;background:rgba(199,123,42,.08)}
+  .tab{padding:.55rem 1rem;border-radius:10px 10px 0 0;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);font-weight:600;background:transparent;border-left:none;border-right:none;border-top:none}
+  .tab.active{color:var(--text);border-bottom-color:var(--accent);background:rgba(199,123,42,.08)}
+  .btn{display:inline-flex;align-items:center;gap:.5rem;padding:.55rem 1.1rem;border-radius:10px;font-weight:600;font-size:.95rem;cursor:pointer;border:1px solid transparent;transition:all .15s;text-decoration:none}
+  .btn-primary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff}
+  .btn-accent{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+  .btn-ghost{background:transparent;border-color:var(--line);color:var(--text)}
+  .btn:hover{filter:brightness(1.08)}
+  .toc{position:sticky;top:1rem}
+  .toc a{display:block;padding:.35rem .6rem;color:var(--muted);text-decoration:none;border-radius:6px;font-size:.9rem}
+  .toc a:hover{color:var(--text);background:rgba(46,92,138,.15)}
+  .mockup{background:var(--bg2);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin:1rem 0}
+  .mockup-bar{background:#050810;padding:.5rem .8rem;display:flex;gap:.4rem;align-items:center;border-bottom:1px solid var(--line)}
+  .mockup-dot{width:10px;height:10px;border-radius:50%}
+  .mockup-url{flex:1;background:var(--bg);color:var(--muted);padding:.15rem .6rem;border-radius:6px;font-size:.75rem;font-family:monospace}
+  .mockup-body{padding:1rem;min-height:120px}
+  .phone{background:var(--bg2);border:3px solid #3a3a3a;border-radius:26px;padding:1.2rem .7rem .7rem;width:220px;margin:0 auto;box-shadow:0 10px 30px rgba(0,0,0,.3);position:relative}
+  .phone::before{content:"";position:absolute;top:6px;left:50%;transform:translateX(-50%);width:40%;height:14px;background:#000;border-radius:10px}
+  .kbd-big{display:inline-block;padding:.15rem .5rem;background:var(--bg3);border:1px solid var(--line);border-radius:6px;font-size:.85rem;font-family:monospace;margin:0 .2rem}
+  .cta-card{padding:1.4rem;border-radius:14px;background:linear-gradient(135deg,rgba(46,92,138,.3),rgba(199,123,42,.15));border:1px solid rgba(74,127,184,.3)}
+  .cta-card.hot{background:linear-gradient(135deg,rgba(199,123,42,.3),rgba(46,92,138,.15));border-color:rgba(226,154,79,.4)}
+  .divider{height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent);margin:1.5rem 0}
+  .check{color:var(--ok);font-weight:bold}.x{color:var(--err);font-weight:bold}
+</style>
+</head>
+<body>
+
+<main class="max-w-6xl mx-auto p-6 md:p-10">
+
+  <!-- Header -->
+  <header class="mb-10">
+    <div class="chip mb-3">📘 Guía rápida</div>
+    <h1 class="brand-grad">Instalar ARMONÍA en tu teléfono + integrar el Tutor IA real</h1>
+    <p class="text-[var(--muted)] max-w-3xl mt-2">Tres preguntas, tres caminos claros. Puedes empezar sin saber programar — solo copiando y pegando. Todo lo necesario está aquí y es gratis.</p>
+  </header>
+
+  <div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-8">
+
+    <!-- TOC -->
+    <nav class="hidden lg:block">
+      <div class="toc card p-4">
+        <div class="text-xs text-[var(--muted)] mb-2 uppercase font-bold">Contenido</div>
+        <a href="#q1">1. ¿Cómo lo instalo?</a>
+        <a href="#ruta-a">→ Ruta A: Netlify (2 min)</a>
+        <a href="#ruta-b">→ Ruta B: GitHub Pages</a>
+        <a href="#ruta-c">→ Ruta C: Local en tu Mac</a>
+        <a href="#phones">→ Instalar en iPhone/Android</a>
+        <a href="#q2">2. ¿GitHub ayuda?</a>
+        <a href="#q3">3. ¿Y el Tutor IA real?</a>
+        <a href="#api-claude">→ Obtener clave Gemini</a>
+        <a href="#worker">→ Cloudflare Worker</a>
+        <a href="#integrar">→ Integrar en la app</a>
+        <a href="#costos">→ Costos reales</a>
+        <a href="#siguientes">4. Siguientes pasos</a>
+      </div>
+    </nav>
+
+    <div>
+
+      <!-- ============ Q1 ============ -->
+      <section id="q1">
+        <h2>📲 1. ¿Cómo instalo ARMONÍA en mi teléfono?</h2>
+        <p>Una PWA necesita estar en una URL <code>https://</code> pública para poder instalarse. El archivo HTML solo, abierto con doble click, no funciona como app — tiene que estar "alojado" en algún lugar de internet. Hay tres maneras de lograrlo, de más fácil a más profesional:</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 my-5">
+          <div class="cta-card hot">
+            <div class="chip chip-accent mb-2">⚡ MÁS RÁPIDO</div>
+            <h3 style="color:#fff;margin:0 0 .3rem">Netlify Drop</h3>
+            <p class="text-sm text-[var(--muted)]">Arrastra la carpeta, obtienes URL en 30 segundos. Sin crear cuenta obligatoria. Perfecto para probar.</p>
+          </div>
+          <div class="cta-card">
+            <div class="chip chip-ok mb-2">⭐ RECOMENDADO</div>
+            <h3 style="color:#fff;margin:0 0 .3rem">GitHub Pages</h3>
+            <p class="text-sm text-[var(--muted)]">Gratis de por vida, versionado, backup automático. Base para cualquier proyecto serio.</p>
+          </div>
+          <div class="cta-card">
+            <div class="chip mb-2">🔧 DESARROLLO</div>
+            <h3 style="color:#fff;margin:0 0 .3rem">Servidor local</h3>
+            <p class="text-sm text-[var(--muted)]">Solo para probar en tu Mac/PC. No se puede instalar desde otro teléfono.</p>
+          </div>
+        </div>
+
+        <!-- Ruta A -->
+        <h3 id="ruta-a">🅰️ Ruta A — Netlify Drop (2 minutos, sin GitHub)</h3>
+
+        <div class="step">
+          <div class="step-num">1</div>
+          <div>
+            <b>Localiza la carpeta del proyecto.</b> Está donde Gemini guardó los archivos: <code>APP ARMONIA</code>. Contiene como mínimo <code>APP_ARMONIA_Prototipo.html</code>, <code>manifest.webmanifest</code>, <code>sw.js</code>, <code>icon-192.svg</code>, <code>icon-512.svg</code>.
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">2</div>
+          <div>
+            <b>Renombra <code>APP_ARMONIA_Prototipo.html</code> a <code>index.html</code></b> (para que Netlify lo detecte como página principal). Alternativa: dejar como está y acceder con <code>tuurl.netlify.app/APP_ARMONIA_Prototipo.html</code>.
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">3</div>
+          <div>
+            <b>Ve a <a href="https://app.netlify.com/drop" target="_blank" class="text-[var(--accent2)] underline">app.netlify.com/drop</a></b> — es la página oficial de arrastrar-y-soltar.
+          </div>
+        </div>
+
+        <div class="mockup">
+          <div class="mockup-bar"><span class="mockup-dot" style="background:#ff5f57"></span><span class="mockup-dot" style="background:#febc2e"></span><span class="mockup-dot" style="background:#28c840"></span><span class="mockup-url">app.netlify.com/drop</span></div>
+          <div class="mockup-body text-center">
+            <div style="border:2px dashed var(--brand2);padding:2rem;border-radius:12px;color:var(--muted)">
+              <div style="font-size:2rem">📁</div>
+              <b class="text-[var(--text)]">Drag and drop your site folder here</b>
+              <div class="text-xs mt-1">or <u>browse to upload</u></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">4</div>
+          <div>
+            <b>Arrastra la carpeta completa</b> (no los archivos sueltos) al recuadro. En segundos verás una URL tipo <code>https://harmonious-cat-123abc.netlify.app</code>.
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">5</div>
+          <div>
+            <b>Abre esa URL en tu teléfono.</b> Desde ahí sigues los pasos de "Instalar en iPhone/Android" más abajo.
+          </div>
+        </div>
+
+        <div class="callout callout-ok">
+          <b>✅ Ventajas:</b> sin cuenta obligatoria, en 2 minutos, HTTPS gratis, siempre disponible.<br>
+          <b>⚠️ Limitación:</b> si no creas cuenta y cierras la sesión, no podrás actualizarla después — tendrías que volver a arrastrar. Por eso al cuarto o quinto cambio conviene pasar a la Ruta B.
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Ruta B -->
+        <h3 id="ruta-b">🅱️ Ruta B — GitHub Pages (10 minutos, recomendada)</h3>
+
+        <div class="step step-alt">
+          <div class="step-num">1</div>
+          <div>
+            <b>Crea cuenta en <a href="https://github.com/signup" target="_blank" class="text-[var(--accent2)] underline">github.com</a>.</b> Es gratis. Usa tu email <code>campoltro@gmail.com</code>.
+          </div>
+        </div>
+
+        <div class="step step-alt">
+          <div class="step-num">2</div>
+          <div>
+            <b>Crea un repositorio nuevo.</b> Clic en el <b>+</b> arriba a la derecha → <b>New repository</b>. Nómbralo <code>armonia</code> (o lo que quieras). Marca <b>Public</b>. No marques "Add README". Clic en <b>Create repository</b>.
+          </div>
+        </div>
+
+        <div class="step step-alt">
+          <div class="step-num">3</div>
+          <div>
+            <b>Sube los archivos.</b> En la página del repo recién creado, haz clic en <b>uploading an existing file</b> (link chiquito) o usa el botón <b>Add file → Upload files</b>.
+          </div>
+        </div>
+
+        <div class="step step-alt">
+          <div class="step-num">4</div>
+          <div>
+            <b>Arrastra toda la carpeta APP ARMONIA</b> (con todos los archivos). Escribe un mensaje de commit corto ("primera versión"). Clic en <b>Commit changes</b>.
+          </div>
+        </div>
+
+        <div class="step step-alt">
+          <div class="step-num">5</div>
+          <div>
+            <b>Activa GitHub Pages.</b> En el repo, ve a <b>Settings</b> (arriba a la derecha) → en el menú lateral <b>Pages</b> → en <b>Source</b> elige <b>Deploy from a branch</b> y selecciona la rama <b>main</b> (carpeta <code>/ (root)</code>). Clic en <b>Save</b>.
+          </div>
+        </div>
+
+        <div class="step step-alt">
+          <div class="step-num">6</div>
+          <div>
+            <b>Espera 1-2 minutos.</b> Tu URL será <code>https://<b>tu-usuario</b>.github.io/armonia/APP_ARMONIA_Prototipo.html</code> (o si renombraste a index.html, solo <code>/armonia/</code>). GitHub te la mostrará arriba en Settings → Pages.
+          </div>
+        </div>
+
+        <div class="callout callout-ok">
+          <b>✅ Ventajas:</b> hosting permanente gratis, cada cambio que subas se publica automáticamente, historial de versiones, URL profesional, base para todo lo demás.
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Ruta C -->
+        <h3 id="ruta-c">🆎 Ruta C — Servidor local (solo para probar en tu Mac/PC)</h3>
+        <p>Ya tienes el archivo <code>servir.command</code> en la carpeta. Doble click en él y abrirá Terminal mostrando <code>http://localhost:8765/APP_ARMONIA_Prototipo.html</code>. Úsalo solo para desarrollo — no puedes instalar en un teléfono externo desde aquí.</p>
+        <div class="callout callout-warn">
+          <b>⚠️ Limitación:</b> el teléfono tendría que estar en la misma Wi-Fi que tu Mac y acceder por IP local — frágil y no recomendado para uso real.
+        </div>
+
+        <!-- PHONE INSTALL -->
+        <h3 id="phones">📱 Una vez tienes la URL: instalar en iPhone / Android</h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="card p-5">
+            <div class="flex items-center gap-2 mb-3">
+              <span style="font-size:1.5rem">🍎</span>
+              <h4 class="font-bold text-lg m-0">iPhone / iPad</h4>
+            </div>
+            <div class="callout callout-warn" style="margin-top:0">
+              <b>⚠️ Apple solo permite instalar PWAs desde Safari.</b> Chrome y Firefox en iOS no funcionan para esto.
+            </div>
+            <ol class="text-sm space-y-2 pl-5" style="list-style:decimal">
+              <li>Abre la URL en <b>Safari</b></li>
+              <li>Toca el botón <b>Compartir</b> (📤 abajo)</li>
+              <li>Desliza hacia abajo</li>
+              <li>Toca <b>"Añadir a pantalla de inicio"</b></li>
+              <li>Confirma el nombre → <b>Añadir</b></li>
+            </ol>
+            <div class="phone mt-4">
+              <div style="background:#000;border-radius:20px;padding:1rem .5rem;min-height:160px">
+                <div style="text-align:center;color:#fff;font-size:.8rem;margin-bottom:.5rem;opacity:.6">Safari</div>
+                <div style="background:#fff;color:#000;padding:.4rem;border-radius:6px;font-size:.6rem;text-align:center">tu-url.netlify.app</div>
+                <div style="text-align:center;margin-top:1rem">
+                  <div style="display:inline-block;background:var(--brand);padding:.4rem .7rem;border-radius:8px;color:#fff;font-size:.65rem">📤 Compartir</div>
+                </div>
+                <div style="margin-top:.8rem;background:#2a2a2a;border-radius:8px;padding:.3rem;font-size:.55rem;color:#ccc">
+                  📌 Añadir a pantalla de inicio
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card p-5">
+            <div class="flex items-center gap-2 mb-3">
+              <span style="font-size:1.5rem">🤖</span>
+              <h4 class="font-bold text-lg m-0">Android</h4>
+            </div>
+            <div class="callout callout-ok" style="margin-top:0">
+              <b>✅ Cualquier navegador moderno funciona.</b> Chrome, Edge, Samsung Internet, Firefox.
+            </div>
+            <ol class="text-sm space-y-2 pl-5" style="list-style:decimal">
+              <li>Abre la URL en <b>Chrome</b> (o el navegador que uses)</li>
+              <li>Si aparece un banner "Instalar", tócalo</li>
+              <li>Si no: menú <b>⋮</b> (tres puntos) → <b>"Instalar app"</b></li>
+              <li>Confirma. Aparecerá en el cajón de apps como una app más</li>
+              <li>Mantén pulsado el ícono para ver los <b>atajos rápidos</b> (Tutor IA, Lección, etc.)</li>
+            </ol>
+            <div class="phone mt-4">
+              <div style="background:#1a1a1a;border-radius:20px;padding:1rem .5rem;min-height:160px">
+                <div style="text-align:center;color:#fff;font-size:.8rem;margin-bottom:.5rem;opacity:.6">Chrome</div>
+                <div style="display:flex;gap:.3rem;align-items:center;background:#2a2a2a;padding:.3rem;border-radius:20px;font-size:.6rem">
+                  <div style="color:#ccc">🔒</div>
+                  <div style="color:#ccc;font-size:.55rem">tu-url.netlify.app</div>
+                  <div style="margin-left:auto;color:#ccc">⋮</div>
+                </div>
+                <div style="margin-top:.8rem;background:var(--bg3);border-radius:8px;padding:.3rem .4rem;font-size:.55rem;color:#fff">
+                  📲 Instalar app
+                </div>
+                <div style="margin-top:.4rem;color:var(--muted);font-size:.55rem;text-align:center">↑ aparece automáticamente</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ Q2 ============ -->
+      <section id="q2">
+        <h2>🐙 2. ¿Tener GitHub ayuda? Sí, en TODO</h2>
+
+        <p>Para un proyecto que quieres publicar en App Store y Play Store algún día, GitHub no es opcional — es como tener email. Te explico qué te da:</p>
+
+        <table>
+          <tr><th style="width:220px">Qué</th><th>Por qué te importa</th></tr>
+          <tr><td><b>Hosting gratis de por vida</b></td><td>GitHub Pages te da una URL pública <code>tu-usuario.github.io/armonia</code> que nunca se cae mientras GitHub exista. Sustituye Netlify.</td></tr>
+          <tr><td><b>Backup automático</b></td><td>Cada cambio queda guardado. Si borras algo por accidente o el disco de tu Mac se muere, tu trabajo está a salvo.</td></tr>
+          <tr><td><b>Historial de cambios</b></td><td>Ver qué cambió entre semana y semana, volver a una versión anterior si algo se rompe. Imposible de vivir sin esto una vez lo pruebas.</td></tr>
+          <tr><td><b>Colaboradores</b></td><td>Cuando contrates pedagogos, diseñadores, programadores, cada uno puede contribuir sin pisar el trabajo del otro.</td></tr>
+          <tr><td><b>Deploy automático</b></td><td>Conectas Vercel o Cloudflare Pages a tu repo y cada cambio publicado va directo a producción. Cero fricción.</td></tr>
+          <tr><td><b>Issues + proyecto</b></td><td>Lista de bugs, ideas, tareas todo integrado. Reemplaza Trello/Asana para proyectos técnicos.</td></tr>
+          <tr><td><b>CI/CD (más adelante)</b></td><td>GitHub Actions puede ejecutar tests, compilar apps móviles, firmar releases, automatizar todo lo que hoy haces a mano.</td></tr>
+          <tr><td><b>Open source opcional</b></td><td>Si en V2 decides hacer parte del curriculum comunitario, GitHub es donde eso vive.</td></tr>
+        </table>
+
+        <div class="callout">
+          <b>💡 Regla de oro:</b> crea el repo GitHub HOY, aunque solo subas lo que tienes ahora. Cuanto antes empieces a versionar, menos dolor cuando el proyecto crezca.
+        </div>
+
+        <h3>¿Qué subir al primer commit?</h3>
+        <p>Todos los archivos de la carpeta APP ARMONIA, excepto cosas temporales. Te preparé un README para que el repo se vea profesional desde el día 1:</p>
+        <p><a href="README.md" class="btn btn-ghost" download>📄 Descargar README.md</a> <span class="text-xs text-[var(--muted)] ml-2">(ya está en la carpeta)</span></p>
+      </section>
+
+      <!-- ============ Q3 ============ -->
+      <section id="q3">
+        <h2>🤖 3. ¿Cómo se hace el Tutor IA real?</h2>
+
+        <div class="callout callout-warn">
+          <b>Estado actual del prototipo:</b> el tutor responde con mensajes guionados muy convincentes. Son buenos para demostrar la visión, pero no entiende preguntas nuevas. Para que entienda <i>cualquier</i> pregunta con profundidad de conservatorio, hay que conectarlo a un modelo de lenguaje real.
+        </div>
+
+        <h3>Arquitectura recomendada (la mejor relación calidad/esfuerzo)</h3>
+        <div class="mockup">
+          <div class="mockup-body">
+            <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;font-family:monospace;font-size:.85rem;justify-content:center">
+              <div style="background:var(--bg3);padding:.6rem 1rem;border-radius:10px;border:1px solid var(--brand2)">📱 App ARMONÍA</div>
+              <div>→</div>
+              <div style="background:var(--bg3);padding:.6rem 1rem;border-radius:10px;border:1px solid var(--accent2)">⚡ Cloudflare Worker<br><span style="font-size:.7rem;opacity:.7">(protege tu API key)</span></div>
+              <div>→</div>
+              <div style="background:var(--bg3);padding:.6rem 1rem;border-radius:10px;border:1px solid #7C3AED">🧠 Gemini API<br><span style="font-size:.7rem;opacity:.7">(el cerebro)</span></div>
+            </div>
+          </div>
+        </div>
+
+        <p>¿Por qué pasar por un Worker intermedio? Porque si la app llama directo a Gemini, cualquiera que abra el código en el navegador ve tu clave de API y te gasta el presupuesto. El Worker guarda la clave como secreto, valida quién puede usarla, y rate-limita por usuario.</p>
+
+        <h3 id="api-claude">Paso 1 — Obtener clave de Gemini</h3>
+        <ol class="space-y-2 pl-5" style="list-style:decimal">
+          <li>Crea cuenta en <a href="https://console.anthropic.com/" target="_blank" class="text-[var(--accent2)] underline">console.anthropic.com</a> con tu email <code>campoltro@gmail.com</code></li>
+          <li>Verifica el teléfono (requerido)</li>
+          <li>Ve a <b>Settings → API Keys</b> → <b>Create Key</b>. Dale nombre "armonia-prod"</li>
+          <li>Copia la clave (empieza por <code>sk-ant-...</code>). Guárdala en un lugar seguro — <b>no aparecerá otra vez</b></li>
+          <li>En <b>Plans &amp; Billing</b> carga 5 USD de crédito inicial para pruebas</li>
+        </ol>
+
+        <h3 id="worker">Paso 2 — Desplegar el Cloudflare Worker</h3>
+        <p>El Worker es una función serverless. Cloudflare te da <b>100,000 peticiones gratis diarias</b>. Más que suficiente para miles de usuarios antes de pagar un centavo.</p>
+
+        <ol class="space-y-2 pl-5" style="list-style:decimal">
+          <li>Crea cuenta en <a href="https://dash.cloudflare.com/sign-up" target="_blank" class="text-[var(--accent2)] underline">cloudflare.com</a> (gratis)</li>
+          <li>En el dashboard, ve a <b>Workers & Pages</b> → <b>Create Application</b> → <b>Create Worker</b></li>
+          <li>Nómbralo <code>armonia-tutor</code> y despliega el worker de ejemplo</li>
+          <li>Clic en <b>Edit code</b></li>
+          <li>Pega el código de abajo (también está en el archivo <code>cloudflare-worker.js</code> de la carpeta)</li>
+          <li>Clic en <b>Save and Deploy</b></li>
+          <li>Ve a <b>Settings → Variables → Environment Variables</b> → <b>Add variable</b>. Nombre: <code>ANTHROPIC_API_KEY</code>, valor: tu clave <code>sk-ant-...</code>. <b>Marca "Encrypt"</b>. Guarda</li>
+          <li>Tu Worker ahora está en <code>https://armonia-tutor.<b>tu-usuario</b>.workers.dev</code>. Copia esa URL</li>
+        </ol>
+
+        <p class="text-sm text-[var(--muted)]">Código del Worker (copia y pega):</p>
+        <pre><code>// armonia-tutor.js — Cloudflare Worker
+export default {
+  async fetch(request, env) {
+    // CORS para que la app en GitHub Pages pueda llamar
+    const CORS = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type"
+    };
+    if (request.method === "OPTIONS") return new Response(null, { headers: CORS });
+    if (request.method !== "POST") return new Response("Method not allowed", { status: 405 });
+
+    const { messages, context } = await request.json();
+
+    // SYSTEM PROMPT — aquí vive la "personalidad pedagógica"
+    const system = `Eres el tutor de ARMONÍA, una app profesional de armonía musical.
+Hablas el idioma del usuario (es/en/pt/fr/it).
+Eres riguroso como un profesor de Berklee o conservatorio, pero cálido y directo.
+Explicas con ejemplos concretos de canciones reales en el estilo del usuario: ${context?.style || 'jazz'}.
+Si preguntan algo que NO sabes o es ambiguo, preguntas por contexto en lugar de inventar.
+Formato: usa HTML simple (b, i, br) para énfasis. Sé conciso: 150-250 palabras por respuesta.
+Cuando propones un acorde o progresión, inclúyelo en formato que la app pueda reproducir:
+[PLAY:Cm7,F7,Bbmaj7] — la app convierte esto en un botón clicable.
+Contexto actual del usuario:
+- Lección: ${context?.lesson || 'Libre'}
+- Partitura abierta: ${context?.score || 'Ninguna'}
+- Nivel: ${context?.level || 'Intermedio'}`;
+
+    const r = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": env.ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1024,
+        system,
+        messages
+      })
+    });
+    const data = await r.json();
+    return new Response(JSON.stringify(data), { headers: { ...CORS, "Content-Type": "application/json" } });
+  }
+};</code></pre>
+
+        <h3 id="integrar">Paso 3 — Integrar el Worker en la app</h3>
+        <p>En el HTML de la app, busca la función <code>tutorReply(text)</code> y reemplázala por esta versión que llama a tu Worker:</p>
+        <pre><code>const WORKER_URL = "https://armonia-tutor.tu-usuario.workers.dev";
+
+async function tutorReplyAI(text) {
+  const chat = activeChat();
+  const history = chat.messages.slice(-10).map(m => ({
+    role: m.who === 'user' ? 'user' : 'assistant',
+    content: m.text.replace(/&lt;[^&gt;]+&gt;/g, '')  // strip HTML for AI
+  }));
+  history.push({ role: 'user', content: text });
+
+  try {
+    const r = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: history,
+        context: {
+          lesson: 'Dominantes secundarios',
+          score: 'All the Things You Are',
+          style: document.getElementById('styleSelect').value,
+          level: 'Intermedio'
+        }
+      })
+    });
+    const data = await r.json();
+    return data.content?.[0]?.text || 'Lo siento, hubo un problema. Intenta otra vez.';
+  } catch (e) {
+    return 'Error de red. Revisa tu conexión e intenta de nuevo.';
+  }
+}</code></pre>
+
+        <p>Y en <code>tutorSend()</code> cambia la línea <code>appendToChat(tutorReply(t),'ai')</code> por <code>tutorReplyAI(t).then(reply =&gt; appendToChat(reply,'ai'))</code>.</p>
+
+        <div class="callout callout-ok">
+          <b>🎉 Listo.</b> Ahora cada pregunta se envía a Gemini con el contexto de la lección, estilo y últimos 10 mensajes. Gemini responde como un verdadero profesor de Berklee. Las respuestas se guardan en el chat y sobreviven entre sesiones.
+        </div>
+
+        <h3 id="costos">Costos reales (cálculo honesto)</h3>
+        <table>
+          <tr><th>Item</th><th>Costo</th><th>Para qué sirve</th></tr>
+          <tr><td>Gemini Sonnet 4.6 (input)</td><td>~$3 por 1M tokens</td><td>La pregunta + contexto + historial</td></tr>
+          <tr><td>Gemini Sonnet 4.6 (output)</td><td>~$15 por 1M tokens</td><td>La respuesta del tutor</td></tr>
+          <tr><td>Cloudflare Workers</td><td><b>GRATIS</b> hasta 100k req/día</td><td>Proxy y rate limiting</td></tr>
+          <tr><td>GitHub Pages</td><td><b>GRATIS</b></td><td>Hosting de la app</td></tr>
+        </table>
+        <p class="text-sm">En la práctica: una conversación típica de 5 intercambios cuesta ~$0.015 (1.5 centavos). Con $5 de crédito tienes ~330 conversaciones para probar. Cuando tengas usuarios de pago, la regla es: <b>tier Pro de $14.99/mes cubre ~500-800 conversaciones de tutor</b>, muy por encima del uso real del promedio.</p>
+
+        <div class="callout callout-warn">
+          <b>⚠️ Protección contra abuso:</b> antes de publicar ampliamente, añade al Worker: (1) rate limit por IP (50 req/día gratis, más si es usuario Pro), (2) validación de token de sesión, (3) lista blanca de dominios (<code>Access-Control-Allow-Origin</code> específico).
+        </div>
+
+        <h3>Alternativas al Worker</h3>
+        <ul class="space-y-1 pl-5" style="list-style:disc">
+          <li><b>Vercel Edge Functions</b> — similar a Cloudflare, buena integración con Next.js si en el futuro migras.</li>
+          <li><b>Supabase Edge Functions</b> — si ya usarás Supabase para base de datos y autenticación.</li>
+          <li><b>AWS Lambda</b> — potente pero con más fricción inicial.</li>
+          <li><b>OpenAI GPT-5</b> en vez de Gemini — mismo patrón, cambia la URL y el formato. Gemini suele dar mejores explicaciones pedagógicas largas.</li>
+        </ul>
+      </section>
+
+      <!-- Q4 -->
+      <section id="siguientes">
+        <h2>🚀 4. Siguientes pasos en orden</h2>
+        <ol class="space-y-3 pl-5" style="list-style:decimal">
+          <li><b>HOY:</b> Sube a Netlify Drop y pruébalo en tu teléfono. Confirma que todo se siente bien.</li>
+          <li><b>ESTA SEMANA:</b> Crea cuenta GitHub, crea repo, sube archivos, activa GitHub Pages. Tienes tu URL permanente.</li>
+          <li><b>ESTA SEMANA:</b> Saca cuenta en Anthropic Console, carga $5 de crédito, crea API key.</li>
+          <li><b>ESTA SEMANA:</b> Despliega el Cloudflare Worker, conecta la app. Tutor IA funcionando de verdad.</li>
+          <li><b>PRÓXIMAS 2 SEMANAS:</b> Haz las 10-15 entrevistas a músicos de la Fase 0 del dossier. Usa el prototipo como material de demo.</li>
+          <li><b>MES 1:</b> Valida o ajusta la propuesta con los resultados de las entrevistas. Decide si arrancas MVP con equipo o sigues iterando solo.</li>
+        </ol>
+      </section>
+
+      <div class="divider"></div>
+
+      <div class="cta-card hot text-center">
+        <h3 style="color:#fff;margin:0 0 .5rem;font-size:1.3rem">¿Bloqueado en algún paso?</h3>
+        <p class="text-[var(--muted)] text-sm mb-3">Escríbeme con capturas y la parte donde te atascaste. Cualquiera de los 3 caminos (Netlify, GitHub, Worker) se puede hacer en una sesión de 30-60 minutos con ayuda paso a paso.</p>
+      </div>
+
+      <div class="text-center text-sm text-[var(--muted)] mt-8">
+        <p>ARMONÍA · Guía de instalación y Tutor IA · Versión 1.0 · Abril 2026</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+</body>
+</html>
