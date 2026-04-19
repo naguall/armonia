@@ -1,7 +1,7 @@
 // ARMONÍA — Service Worker
 // Network-first for same-origin, cache-first for CDN assets only.
 
-const CACHE = "armonia-v2.3-2026-04-18b";  // ← bump cuando cambia algo importante
+const CACHE = "armonia-v2.4-2026-04-18";  // ← bump cuando cambia algo importante
 
 self.addEventListener("install", (e) => {
   self.skipWaiting(); // activate immediately
