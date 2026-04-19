@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
-<title>ARMONÍA — v2.0</title>
+<title>ARMONÍA — v2.4</title>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="2.0.0">
+<meta name="version" content="2.2.0">
 
 <!-- PWA -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -121,19 +121,32 @@
   #fabPanel{position:fixed;z-index:40;border-radius:16px;overflow:hidden;box-shadow:0 -4px 30px rgba(0,0,0,.6);background:rgba(14,18,32,.98);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(75,95,140,.25);touch-action:manipulation;display:flex;flex-direction:column}
   #fabPanel #fabBody{flex:0 0 auto;display:flex;align-items:center;justify-content:center;overflow:hidden}
   /* Alturas FIJAS para que no brinque al cambiar texto */
-  #fabHint,#fabStatus{min-height:36px;display:flex;align-items:center}
+  #fabHint,#fabStatus{min-height:28px;display:flex;align-items:center}
   #fabStatus{flex:1;justify-content:flex-end;text-align:right}
-  #fabSeq{min-height:42px}
+  #fabSeq{min-height:32px}
+  /* Toolbar del panel: scroll horizontal si no cabe */
+  #fabPanel .fab-toolbar{display:flex;align-items:center;gap:.35rem;padding:.4rem .6rem;border-bottom:1px solid var(--line);background:var(--bg2);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;flex-shrink:0;white-space:nowrap}
+  #fabPanel .fab-toolbar .btn{flex-shrink:0;padding:.25rem .5rem;font-size:.8rem}
+  /* Secciones inferiores: compactas, no crecen */
+  #fabPanel .fab-footer{flex-shrink:0;overflow:hidden}
   @media (min-width:700px){
     #fabPanel{right:18px;bottom:86px;max-width:calc(100vw - 36px);width:auto}
   }
   @media (max-width:699px){
-    /* Drawer FIJO: altura fija, ancho total, anclado abajo */
-    #fabPanel{left:0!important;right:0!important;bottom:0!important;top:auto!important;width:100%!important;max-width:100%!important;max-height:440px;min-height:440px;border-radius:16px 16px 0 0;padding-bottom:env(safe-area-inset-bottom,0px)}
-    #fabPanel #fabBody{min-height:180px;max-height:180px}
+    /* Drawer FIJO: usa dvh para respetar viewport real */
+    #fabPanel{left:0!important;right:0!important;bottom:0!important;top:auto!important;width:100%!important;max-width:100%!important;max-height:80dvh;border-radius:16px 16px 0 0;padding-bottom:env(safe-area-inset-bottom,0px)}
+    #fabPanel #fabBody{min-height:140px;max-height:180px}
     /* Lock total html+body = NO scroll, NO URL-bar collapse */
     html.fab-open,body.fab-open{overflow:hidden!important;position:fixed!important;width:100%!important;height:100%!important;top:0;left:0;touch-action:none!important;overscroll-behavior:none!important}
     html.fab-open{-webkit-overflow-scrolling:auto}
+  }
+  /* LANDSCAPE en teléfono: mucho menos alto */
+  @media (max-width:900px) and (max-height:500px) and (orientation:landscape){
+    #fabPanel{max-height:100dvh!important;height:100dvh!important;border-radius:0!important;top:0!important;bottom:0!important;overflow-y:auto}
+    #fabPanel #fabBody{min-height:100px!important;max-height:120px!important}
+    #fabPanel .fab-toolbar .btn{padding:.2rem .4rem;font-size:.72rem}
+    #fabPanel .fab-footer{font-size:.72rem}
+    #fabPanel .fab-footer > div{padding:.25rem .6rem!important}
   }
 </style>
 </head>
@@ -147,7 +160,7 @@
     </div>
     <div>
       <div class="font-bold text-lg leading-none">ARMONÍA</div>
-      <div class="text-xs text-[var(--muted)]">v2.1 · 2026-04-18</div>
+      <div class="text-xs text-[var(--muted)]">v2.4 · 2026-04-18</div>
     </div>
   </div>
 
@@ -388,10 +401,24 @@
             <button class="chord-pill" data-chord="eb7">E♭7</button>
             <button class="chord-pill" data-chord="abmaj7">A♭maj7</button>
           </div>
-          <div class="flex gap-2 items-center">
-            <button class="btn btn-primary" onclick="playProgression(['Fm7','Bbm7','Eb7','Abmaj7'])">▶ Reproducir progresión</button>
+          <div class="flex gap-2 items-center flex-wrap">
+            <button class="btn btn-primary" onclick="playProgression(['Fm7','Bbm7','Eb7','Abmaj7'])">▶ Play</button>
             <button class="btn btn-ghost" onclick="playProgression(['Fm7','Bbm7','Eb7','Abmaj7'],true)">🐢 Lento</button>
+            <button class="btn btn-ghost loop-btn" data-slow="false" onclick="toggleLoop(['Fm7','Bbm7','Eb7','Abmaj7'],false)">🔁 Loop</button>
+            <button class="btn btn-ghost loop-btn" data-slow="true" onclick="toggleLoop(['Fm7','Bbm7','Eb7','Abmaj7'],true)">🐢🔁</button>
             <span class="text-xs text-[var(--muted)] ml-auto">vi — ii — V — I en A♭</span>
+          </div>
+          <!-- Backing rhythm -->
+          <div class="flex gap-2 items-center flex-wrap mt-3 pt-3" style="border-top:1px solid var(--line)">
+            <button class="btn btn-ghost backing-btn" onclick="toggleBacking()" title="Activar ritmo de fondo">🥁 Ritmo</button>
+            <select id="backingStyleSelect" class="styled" style="padding:.3rem .5rem;font-size:.8rem" onchange="changeBackingStyle()">
+              <option value="">Auto (según estilo)</option>
+              <option value="swing">Swing</option>
+              <option value="bossa">Bossa Nova</option>
+              <option value="latin">Latin / Afrocubano</option>
+              <option value="straight">Straight / Pop</option>
+            </select>
+            <span class="text-xs text-[var(--muted)]">Activa loop + ritmo para tocar encima</span>
           </div>
         </div>
 
@@ -695,9 +722,11 @@
         <div class="bg-[var(--bg2)] rounded-lg p-5 mb-4">
           <div class="flex items-center justify-between mb-3">
             <div class="text-xs text-[var(--muted)]">SECCIÓN A1 · Compases 1–8</div>
-            <div class="flex gap-2">
-              <button class="btn btn-primary" onclick="playProgression(['Cm7','F7','Bbmaj7','Ebmaj7','Am7b5','D7','Gm','Gm'])">▶ Escuchar</button>
+            <div class="flex gap-2 flex-wrap">
+              <button class="btn btn-primary" onclick="playProgression(['Cm7','F7','Bbmaj7','Ebmaj7','Am7b5','D7','Gm','Gm'])">▶ Play</button>
               <button class="btn btn-ghost" onclick="playProgression(['Cm7','F7','Bbmaj7','Ebmaj7','Am7b5','D7','Gm','Gm'],true)">🐢</button>
+              <button class="btn btn-ghost loop-btn" data-slow="false" onclick="toggleLoop(['Cm7','F7','Bbmaj7','Ebmaj7','Am7b5','D7','Gm','Gm'],false)">🔁 Loop</button>
+              <button class="btn btn-ghost loop-btn" data-slow="true" onclick="toggleLoop(['Cm7','F7','Bbmaj7','Ebmaj7','Am7b5','D7','Gm','Gm'],true)">🐢🔁</button>
             </div>
           </div>
 
@@ -1055,45 +1084,60 @@
   style="position:fixed;right:18px;bottom:18px;width:56px;height:56px;border-radius:28px;background:linear-gradient(135deg,#C77B2A,#E29A4F);border:0;color:#fff;font-size:1.6rem;box-shadow:0 6px 20px rgba(0,0,0,.4);cursor:pointer;z-index:40;transition:transform .15s">🎹</button>
 
 <div id="fabPanel" class="glass" style="display:none">
-  <div style="padding:.6rem .9rem;display:flex;align-items:center;gap:.5rem;border-bottom:1px solid var(--line);background:var(--bg2)">
-    <button class="btn btn-ghost" style="padding:.3rem .6rem" onclick="fabSetMode('piano')" id="fabTabPiano">🎹 Piano</button>
-    <button class="btn btn-ghost" style="padding:.3rem .6rem" onclick="fabSetMode('guitar')" id="fabTabGuitar">🎸 Guitarra</button>
-    <div style="flex:1"></div>
-    <button class="btn btn-ghost" id="fabChordToggle" style="padding:.3rem .6rem" onclick="toggleChordMode()" title="Modo acorde (mantiene notas)">🎵 Sostener</button>
-    <button class="btn btn-ghost" style="padding:.3rem .6rem" id="fabOctaveBtn" onclick="toggleOctaves()" title="2 octavas">2×</button>
-    <button class="btn btn-ghost" style="padding:.3rem .6rem" onclick="toggleFab()" title="Cerrar">✕</button>
+  <div class="fab-toolbar">
+    <button class="btn btn-ghost" onclick="fabSetMode('piano')" id="fabTabPiano">🎹 Piano</button>
+    <button class="btn btn-ghost" onclick="fabSetMode('guitar')" id="fabTabGuitar">🎸 Guitarra</button>
+    <div style="flex:1;min-width:.5rem"></div>
+    <button class="btn btn-ghost" id="fabChordToggle" onclick="toggleChordMode()" title="Modo acorde (mantiene notas)">🎵 Sostener</button>
+    <button class="btn btn-ghost" id="fabOctaveBtn" onclick="toggleOctaves()" title="2 octavas">2×</button>
+    <button class="btn btn-ghost" onclick="toggleFab()" title="Cerrar">✕</button>
   </div>
-  <div id="fabBody" style="padding:.8rem"></div>
-  <div style="padding:.4rem .9rem;background:var(--bg2);border-top:1px solid var(--line);font-size:.78rem;color:var(--muted);display:flex;justify-content:space-between;gap:.5rem;flex-wrap:wrap">
+  <div id="fabBody" style="padding:.5rem"></div>
+  <div class="fab-footer" style="padding:.3rem .7rem;background:var(--bg2);border-top:1px solid var(--line);font-size:.75rem;color:var(--muted);display:flex;justify-content:space-between;gap:.4rem;flex-wrap:wrap">
     <div id="fabHint">Toca una nota. <b>Sostener</b> deja la nota sonando hasta que la sueltes.</div>
     <div id="fabStatus"></div>
   </div>
   <!-- CONTROLES DE TEMPO Y COMPÁS -->
-  <div style="padding:.4rem .9rem;background:var(--bg2);border-top:1px solid var(--line);display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;font-size:.78rem">
+  <div class="fab-footer" style="padding:.3rem .7rem;background:var(--bg2);border-top:1px solid var(--line);display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;font-size:.75rem">
     <label style="color:var(--muted)">BPM</label>
-    <input id="fabBpm" type="number" min="40" max="240" value="100" class="styled" style="width:60px;padding:.2rem .4rem;font-size:.8rem;text-align:center" onchange="updateSequenceTimeInfo()">
-    <label style="color:var(--muted);margin-left:.3rem">Compás</label>
-    <select id="fabTimeSig" class="styled" style="padding:.2rem .3rem;font-size:.78rem" onchange="updateSequenceTimeInfo()">
+    <input id="fabBpm" type="number" min="40" max="240" value="100" class="styled" style="width:52px;padding:.15rem .3rem;font-size:.75rem;text-align:center" onchange="updateSequenceTimeInfo()">
+    <label style="color:var(--muted)">Compás</label>
+    <select id="fabTimeSig" class="styled" style="padding:.15rem .25rem;font-size:.72rem" onchange="updateSequenceTimeInfo()">
       <option value="4">4/4</option><option value="3">3/4</option><option value="6">6/8</option><option value="5">5/4</option>
     </select>
-    <label style="color:var(--muted);margin-left:.3rem">Dur.</label>
-    <select id="fabBars" class="styled" style="padding:.2rem .3rem;font-size:.78rem" onchange="updateSequenceTimeInfo()">
-      <option value="0.25">¼ compás</option>
-      <option value="0.5">½ compás</option>
-      <option value="1" selected>1 compás</option>
-      <option value="2">2 compases</option>
-      <option value="4">4 compases</option>
+    <label style="color:var(--muted)">Dur.</label>
+    <select id="fabBars" class="styled" style="padding:.15rem .25rem;font-size:.72rem" onchange="updateSequenceTimeInfo()">
+      <option value="0.25">¼</option>
+      <option value="0.5">½</option>
+      <option value="1" selected>1</option>
+      <option value="2">2</option>
+      <option value="4">4</option>
     </select>
+    <span style="color:var(--muted)">comp</span>
     <span id="fabDurInfo" style="color:var(--muted);margin-left:auto">1 comp = 2.4 s</span>
   </div>
   <!-- SECUENCIA DE ACORDES -->
-  <div style="padding:.5rem .9rem;background:var(--bg3);border-top:1px solid var(--line);display:flex;align-items:center;gap:.4rem;flex-wrap:wrap">
-    <button class="btn btn-accent" style="padding:.3rem .7rem;font-size:.82rem" onclick="fabCaptureChord()">⏺ Guardar acorde</button>
-    <button class="btn btn-ghost" style="padding:.3rem .5rem;font-size:.82rem" onclick="fabPlaySequence()">▶ Reproducir</button>
-    <button class="btn btn-ghost" style="padding:.3rem .5rem;font-size:.82rem" onclick="fabClearSequence()" title="Limpiar">🗑</button>
-    <button class="btn btn-primary" style="padding:.3rem .6rem;font-size:.82rem;margin-left:auto" onclick="fabAskTutor()">🤖 Preguntar al tutor</button>
+  <div class="fab-footer" style="padding:.35rem .7rem;background:var(--bg3);border-top:1px solid var(--line);display:flex;align-items:center;gap:.3rem;flex-wrap:wrap">
+    <button class="btn btn-accent" style="padding:.2rem .5rem;font-size:.75rem" onclick="fabCaptureChord()">⏺ Guardar</button>
+    <button class="btn btn-ghost" style="padding:.2rem .4rem;font-size:.75rem" onclick="fabPlaySequence()">▶ Play</button>
+    <button class="btn btn-ghost loop-btn" data-slow="false" style="padding:.2rem .4rem;font-size:.75rem" onclick="fabLoopSequence(false)">🔁 Loop</button>
+    <button class="btn btn-ghost" style="padding:.2rem .4rem;font-size:.75rem" onclick="fabClearSequence()" title="Limpiar">🗑</button>
+    <button class="btn btn-primary" style="padding:.2rem .5rem;font-size:.75rem;margin-left:auto" onclick="fabAskTutor()">🤖 Tutor</button>
   </div>
-  <div id="fabSeq" style="padding:.5rem .9rem;background:var(--bg3);border-top:1px solid var(--line);min-height:24px;display:flex;align-items:center;gap:.3rem;flex-wrap:wrap;font-size:.82rem"></div>
+  <!-- LOOP + RITMO en piano flotante -->
+  <div class="fab-footer" style="padding:.3rem .7rem;background:var(--bg3);border-top:1px solid var(--line);display:flex;align-items:center;gap:.3rem;flex-wrap:wrap">
+    <button class="btn btn-ghost backing-btn" style="padding:.2rem .5rem;font-size:.75rem" onclick="toggleBacking()">🥁 Ritmo</button>
+    <select id="fabBackingStyle" class="styled" style="padding:.15rem .3rem;font-size:.72rem" onchange="changeBackingStyle()">
+      <option value="">Auto</option>
+      <option value="swing">Swing</option>
+      <option value="bossa">Bossa</option>
+      <option value="latin">Latin</option>
+      <option value="straight">Straight</option>
+    </select>
+    <button class="btn btn-ghost loop-btn" data-slow="true" style="padding:.2rem .4rem;font-size:.72rem" onclick="fabLoopSequence(true)">🐢🔁 Lento</button>
+    <button class="btn btn-ghost" style="padding:.2rem .4rem;font-size:.72rem;margin-left:auto" onclick="stopLoop();stopBacking()">⏹ Parar todo</button>
+  </div>
+  <div id="fabSeq" class="fab-footer" style="padding:.35rem .7rem;background:var(--bg3);border-top:1px solid var(--line);display:flex;align-items:center;gap:.3rem;flex-wrap:wrap;font-size:.78rem"></div>
 </div>
 
 <!-- INSTALL HELP MODAL -->
@@ -1297,14 +1341,179 @@ async function playChord(sym,dur="2n"){
   const notes=parseChord(sym);
   if(notes)synth.triggerAttackRelease(notes,dur);
 }
-async function playProgression(syms,slow=false){
+// ============ LOOP + BACKING SYSTEM ============
+let _loopState = { active:false, iid:null, backingActive:false, backingIid:null, slow:false, syms:null };
+
+async function playProgression(syms, slow=false, loop=false){
   await ensureAudio();
-  const t=Tone.now();
-  const beatDur=slow?1.6:.8;
+  if(loop){
+    // Si ya hay loop corriendo, pararlo
+    if(_loopState.active){ stopLoop(); return; }
+    _loopState.syms = syms;
+    _loopState.slow = slow;
+    _loopState.active = true;
+    updateLoopUI(true);
+    _playLoopCycle(); // arranca el primer ciclo
+    return;
+  }
+  // Play una sola vez (NO toca stopLoop — no interrumpe loop activo)
+  const beatDur = slow ? 1.6 : 0.8;
+  const t = Tone.now();
   syms.forEach((s,i)=>{
-    const notes=parseChord(s);
-    if(notes)synth.triggerAttackRelease(notes,beatDur*.95,t+i*beatDur);
+    const notes = parseChord(s);
+    if(notes) synth.triggerAttackRelease(notes, beatDur*0.9, t + i*beatDur);
   });
+}
+
+function _playLoopCycle(){
+  if(!_loopState.active) return;
+  const syms = _loopState.syms;
+  const slow = _loopState.slow;
+  const beatDur = slow ? 1.6 : 0.8;
+  const t = Tone.now() + 0.05;
+  syms.forEach((s,i)=>{
+    const notes = parseChord(s);
+    if(notes) synth.triggerAttackRelease(notes, beatDur*0.85, t + i*beatDur);
+  });
+  // Programar siguiente ciclo
+  const cycleDur = syms.length * beatDur * 1000;
+  _loopState.iid = setTimeout(()=> _playLoopCycle(), cycleDur);
+}
+
+function stopLoop(){
+  if(_loopState.iid){ clearTimeout(_loopState.iid); _loopState.iid = null; }
+  _loopState.active = false;
+  _loopState.syms = null;
+  updateLoopUI(false);
+  stopBacking();
+}
+
+function toggleLoop(symsJson, slow){
+  if(_loopState.active){ stopLoop(); return; }
+  let syms;
+  try{ syms = typeof symsJson === 'string' ? JSON.parse(symsJson) : symsJson; }catch(e){ return; }
+  playProgression(syms, slow, true);
+  // Auto-start backing if toggled on
+  if(_loopState.backingActive) startBacking();
+}
+
+function updateLoopUI(active){
+  document.querySelectorAll('.loop-btn').forEach(b=>{
+    if(b.dataset.slow === 'true'){
+      b.innerHTML = active ? '⏹ Stop' : '🐢🔁';
+    } else {
+      b.textContent = active ? '⏹ Stop' : '🔁 Loop';
+    }
+    b.style.background = active ? 'linear-gradient(135deg,var(--accent),var(--accent2))' : '';
+    b.style.color = active ? '#fff' : '';
+  });
+}
+
+// ============ BACKING RHYTHM ENGINE ============
+// Usa setInterval simple con Tone.now() — robusto en todos los navegadores
+let _drumSynths = null;
+function ensureDrums(){
+  if(_drumSynths) return;
+  _drumSynths = {
+    kick: new Tone.MembraneSynth({volume:-6, pitchDecay:0.05, octaves:6, envelope:{attack:.001,decay:.4,sustain:0,release:.2}}).toDestination(),
+    snare: new Tone.NoiseSynth({volume:-10, noise:{type:'white'}, envelope:{attack:.002,decay:.18,sustain:0,release:.12}}).toDestination(),
+    hihat: new Tone.NoiseSynth({volume:-16, noise:{type:'brown'}, envelope:{attack:.001,decay:.04,sustain:0,release:.02}}).toDestination(),
+    ride: new Tone.NoiseSynth({volume:-14, noise:{type:'pink'}, envelope:{attack:.001,decay:.2,sustain:0.02,release:.15}}).toDestination()
+  };
+}
+
+const DRUM_PATTERNS = {
+  swing: {
+    // 8 steps = 8th notes, swing feel via timing offset
+    //          1  &  2  &  3  &  4  &
+    kick:   [1, 0, 0, 0, 0.6,0, 0, 0],
+    snare:  [0, 0, 1, 0, 0, 0, 1, 0],
+    hihat:  [0, 0, 0, 0, 0, 0, 0, 0],
+    ride:   [1,0.4,1,0.3,1,0.4,1,0.3],
+    swingRatio: 0.67 // long-short (2:1 feel)
+  },
+  bossa: {
+    kick:   [1, 0, 0, 0.8, 0, 0.8, 0, 0],
+    snare:  [0, 0, 0.5,0, 0, 0, 0.5,0],
+    hihat:  [1,0.5,1,0.5, 1,0.5,1,0.5],
+    ride:   [0, 0, 0, 0, 0, 0, 0, 0],
+    swingRatio: 0.5
+  },
+  latin: {
+    kick:   [1, 0, 0, 1, 0, 0.8, 0, 0],
+    snare:  [0, 0, 1, 0, 0, 0, 0, 1],
+    hihat:  [1,0.5,1,0.5, 1,0.5,1,0.5],
+    ride:   [0, 0, 0, 0, 0, 0, 0, 0],
+    swingRatio: 0.5
+  },
+  straight: {
+    kick:   [1, 0, 0, 0, 1, 0, 0, 0],
+    snare:  [0, 0, 1, 0, 0, 0, 1, 0],
+    hihat:  [1,0.6,1,0.6, 1,0.6,1,0.6],
+    ride:   [0, 0, 0, 0, 0, 0, 0, 0],
+    swingRatio: 0.5
+  }
+};
+
+function getBackingStyle(){
+  const style = document.getElementById('styleSelect')?.value || 'jazz';
+  const map = { classical:'straight', jazz:'swing', pop:'straight', latin:'latin', film:'straight' };
+  const sel = document.getElementById('backingStyleSelect');
+  const fabSel = document.getElementById('fabBackingStyle');
+  const override = sel?.value || fabSel?.value || '';
+  return override || map[style] || 'swing';
+}
+
+function startBacking(){
+  ensureDrums();
+  stopBacking();
+  _loopState.backingActive = true;
+  updateBackingUI(true);
+
+  const pat = DRUM_PATTERNS[getBackingStyle()];
+  const slow = _loopState.slow;
+  const bpm = slow ? 75 : 130;
+  const beatSec = 60 / bpm; // quarter note
+  const eighthBase = beatSec / 2;
+  const steps = pat.kick.length; // 8 steps
+  let step = 0;
+
+  function tick(){
+    const t = Tone.now();
+    // swing: first 8th longer, second shorter
+    const isOffbeat = step % 2 === 1;
+    if(pat.kick[step])  _drumSynths.kick.triggerAttackRelease('C1', '8n', t);
+    if(pat.snare[step]) _drumSynths.snare.triggerAttackRelease('16n', t);
+    if(pat.hihat[step]) _drumSynths.hihat.triggerAttackRelease('32n', t);
+    if(pat.ride[step])  _drumSynths.ride.triggerAttackRelease('8n', t);
+    step = (step + 1) % steps;
+    // Swing timing: on-beat = long, off-beat = short
+    const nextIsOffbeat = step % 2 === 1;
+    const interval = nextIsOffbeat ? eighthBase * (pat.swingRatio * 2) : eighthBase * ((1 - pat.swingRatio) * 2);
+    _loopState.backingIid = setTimeout(tick, interval * 1000);
+  }
+  tick();
+}
+
+function stopBacking(){
+  if(_loopState.backingIid){ clearTimeout(_loopState.backingIid); _loopState.backingIid = null; }
+  updateBackingUI(false);
+}
+
+function toggleBacking(){
+  if(_loopState.backingActive){ _loopState.backingActive = false; stopBacking(); return; }
+  ensureAudio().then(()=> startBacking());
+}
+
+function updateBackingUI(active){
+  document.querySelectorAll('.backing-btn').forEach(b=>{
+    b.style.background = active ? 'linear-gradient(135deg,var(--brand),var(--brand2))' : '';
+    b.style.color = active ? '#fff' : '';
+  });
+}
+
+function changeBackingStyle(){
+  if(_loopState.backingActive){ stopBacking(); startBacking(); }
 }
 async function playStyleDemo(style){
   await ensureAudio();
@@ -1532,7 +1741,10 @@ async function tutorReplyAI(userText){
     // [PLAY:…] → botón
     text = text.replace(/\[PLAY:([^\]]+)\]/g, (_,chords)=>{
       const arr = chords.split(',').map(s=>s.trim()).filter(Boolean);
-      return `<button class="chord-pill" style="margin:.3rem 0" onclick='playProgression(${JSON.stringify(arr)})'>▶ ${arr.join(' · ')}</button>`;
+      const id = 'prog_'+Math.random().toString(36).slice(2,8);
+      window._progs = window._progs || {};
+      window._progs[id] = arr;
+      return `<button class="chord-pill" style="margin:.3rem 0" onclick='playProgression(window._progs["${id}"])'>▶ ${arr.join(' · ')}</button> <button class="chord-pill loop-btn" data-slow="false" style="margin:.3rem 0;font-size:.75rem" onclick='toggleLoop(window._progs["${id}"],false)'>🔁</button>`;
     });
     // Convertir markdown básico
     text = text.replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/\*([^*]+)\*/g,'<i>$1</i>');
@@ -2088,7 +2300,7 @@ let FAB_STATE = {
 function toggleFab(){
   FAB_STATE.open = !FAB_STATE.open;
   const panel = document.getElementById('fabPanel');
-  panel.style.display = FAB_STATE.open ? 'block' : 'none';
+  panel.style.display = FAB_STATE.open ? 'flex' : 'none';
   if(FAB_STATE.open){
     lockBodyScroll();
     renderFab();
@@ -2123,14 +2335,18 @@ function _preventScroll(e){
   const panel = document.getElementById('fabPanel');
   if(!panel || !panel.contains(e.target)) e.preventDefault();
 }
-// Re-anclar el panel al visualViewport si cambia (teclado, rotación)
+// Rotación: re-renderizar teclas para ajustar tamaño landscape/portrait
+window.addEventListener('orientationchange', ()=>{
+  if(!FAB_STATE.open) return;
+  setTimeout(()=> renderFab(), 200);
+});
 if(window.visualViewport){
+  let _lastW = window.visualViewport.width;
   window.visualViewport.addEventListener('resize', ()=>{
     if(!FAB_STATE.open) return;
-    const panel = document.getElementById('fabPanel');
-    const vv = window.visualViewport;
-    const fromBottom = window.innerHeight - vv.height - vv.offsetTop;
-    panel.style.bottom = (86 + Math.max(0, fromBottom)) + 'px';
+    // Solo re-render si cambió el ancho (rotación), NO si solo cambió el alto (URL bar)
+    const w = window.visualViewport.width;
+    if(Math.abs(w - _lastW) > 50){ _lastW = w; renderFab(); }
   });
 }
 function fabSetMode(m){
@@ -2312,17 +2528,22 @@ function renderFab(){
 function buildFabPiano(){
   const container = document.createElement('div');
   // scroll horizontal permitido SOLO con pan-x, taps NO hacen scroll vertical ni zoom
-  container.style.cssText = 'position:relative;user-select:none;-webkit-user-select:none;touch-action:pan-x;overflow-x:auto;overflow-y:hidden;max-width:calc(100vw - 80px);padding-bottom:4px;overscroll-behavior:contain';
+  container.style.cssText = 'position:relative;user-select:none;-webkit-user-select:none;touch-action:pan-x;overflow-x:auto;overflow-y:hidden;max-width:100%;padding-bottom:4px;overscroll-behavior:contain';
   const octaves = FAB_STATE.octaves;
   const whites = ['C','D','E','F','G','A','B'];
   const blackOffsets = {'C#':1,'D#':2,'F#':4,'G#':5,'A#':6};
-  // Teclas más grandes en móvil para que sean tocables sin error
-  const isMobile = window.matchMedia('(max-width: 700px)').matches;
-  const kw = isMobile ? 42 : 36;
-  const kh = isMobile ? 150 : 140;
+  // Detectar landscape en móvil → teclas más compactas
+  const isMobile = window.matchMedia('(max-width: 900px)').matches;
+  const isLandscape = window.matchMedia('(orientation: landscape) and (max-height: 500px)').matches;
+  const kw = isLandscape ? 34 : (isMobile ? 40 : 36);
+  const kh = isLandscape ? 90 : (isMobile ? 140 : 140);
+  const bkh = isLandscape ? 55 : 90; // black key height
   const totalKeys = whites.length * octaves;
+  // Si cabe en pantalla sin scroll, centrarlo; si no, permitir scroll
+  const availW = window.innerWidth - 20;
+  const neededW = totalKeys * kw;
   const inner = document.createElement('div');
-  inner.style.cssText = `position:relative;width:${totalKeys*kw}px;height:${kh}px;margin:0 auto`;
+  inner.style.cssText = `position:relative;width:${neededW}px;height:${kh}px;margin:0 auto`;
   // white keys
   for(let o=0;o<octaves;o++){
     whites.forEach((w,i)=>{
@@ -2344,7 +2565,8 @@ function buildFabPiano(){
       const k = document.createElement('div');
       k.className = 'fab-key key-black';
       k.dataset.note = note;
-      k.style.cssText = `position:absolute;left:${left}px;top:0;width:24px;height:90px;border-radius:0 0 4px 4px;z-index:2`;
+      const bkw = isLandscape ? 20 : 24;
+      k.style.cssText = `position:absolute;left:${left}px;top:0;width:${bkw}px;height:${bkh}px;border-radius:0 0 4px 4px;z-index:2`;
       bindKey(k, note);
       inner.appendChild(k);
     });
@@ -2377,13 +2599,14 @@ function buildFabGuitar(){
   // Afinación estándar de 6 cuerdas, grave→agudo: E2 A2 D3 G3 B3 E4
   const tuning = ['E2','A2','D3','G3','B3','E4'];
   const frets = FAB_STATE.octaves===1 ? 6 : 12; // 2x = más trastes
-  const isMobile = window.matchMedia('(max-width: 700px)').matches;
-  const fw = isMobile ? 52 : 44;  // más grande para dedos
-  const fh = isMobile ? 32 : 24;
+  const isMobile = window.matchMedia('(max-width: 900px)').matches;
+  const isLandscape = window.matchMedia('(orientation: landscape) and (max-height: 500px)').matches;
+  const fw = isLandscape ? 38 : (isMobile ? 48 : 44);
+  const fh = isLandscape ? 22 : (isMobile ? 30 : 24);
   const totalW = (frets+1)*fw;
   const totalH = tuning.length*fh;
   const wrap = document.createElement('div');
-  wrap.style.cssText = `position:relative;user-select:none;-webkit-user-select:none;touch-action:pan-x;background:linear-gradient(180deg,#6b4823,#4a2f15);border-radius:6px;padding:10px;overflow-x:auto;overflow-y:hidden;max-width:calc(100vw - 80px);overscroll-behavior:contain`;
+  wrap.style.cssText = `position:relative;user-select:none;-webkit-user-select:none;touch-action:pan-x;background:linear-gradient(180deg,#6b4823,#4a2f15);border-radius:6px;padding:${isLandscape?'4px':'10px'};overflow-x:auto;overflow-y:hidden;max-width:100%;overscroll-behavior:contain`;
   const inner = document.createElement('div');
   inner.style.cssText = `position:relative;width:${totalW}px;height:${totalH}px;margin:0 auto`;
 
@@ -2557,6 +2780,17 @@ async function fabPlaySequence(){
   });
   const totalBars = FAB_STATE.sequence.reduce((s,c)=>s+(c.bars||1),0);
   document.getElementById('fabStatus').innerHTML = '<span style="color:var(--ok)">▶ '+FAB_STATE.sequence.length+' acordes · '+totalBars+' compases · '+offset.toFixed(1)+'s</span>';
+}
+
+function fabLoopSequence(slow){
+  if(_loopState.active){ stopLoop(); return; }
+  if(FAB_STATE.sequence.length === 0){
+    document.getElementById('fabStatus').innerHTML = '<span style="color:var(--warn)">⚠️ Graba al menos un acorde primero</span>';
+    return;
+  }
+  // Convertir secuencia a nombres de acorde para playProgression
+  const syms = FAB_STATE.sequence.map(c => c.name);
+  toggleLoop(syms, slow);
 }
 
 function fabAskTutor(){
