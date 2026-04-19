@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
-<title>ARMONÍA — v2.4</title>
+<title>ARMONÍA — v2.5</title>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -160,7 +160,7 @@
     </div>
     <div>
       <div class="font-bold text-lg leading-none">ARMONÍA</div>
-      <div class="text-xs text-[var(--muted)]">v2.4 · 2026-04-18</div>
+      <div class="text-xs text-[var(--muted)]">v2.5 · 2026-04-18</div>
     </div>
   </div>
 
@@ -422,23 +422,27 @@
           </div>
         </div>
 
-        <h3 class="font-bold mb-2">Escalas disponibles (Chord-Scale)</h3>
-        <div class="text-sm space-y-2 mb-4">
-          <div class="flex gap-3 items-center">
+        <h3 class="font-bold mb-2">Escalas disponibles (Chord-Scale) <span class="text-xs text-[var(--muted)] font-normal">· click para escuchar</span></h3>
+        <div class="text-sm space-y-2 mb-4" id="scalesList">
+          <div class="flex gap-3 items-center cursor-pointer scale-row" onclick="playScale('mixolydian','Eb4')" title="Click para reproducir escala">
             <span class="chord-pill">E♭7</span>
             <span class="text-[var(--muted)]">→ Mixolidio (sonido estándar)</span>
+            <span class="text-xs text-[var(--accent2)] ml-auto">▶</span>
           </div>
-          <div class="flex gap-3 items-center">
+          <div class="flex gap-3 items-center cursor-pointer scale-row" onclick="playScale('mixolydianB9B13','Eb4')" title="Click para reproducir escala">
             <span class="chord-pill">E♭7</span>
             <span class="text-[var(--muted)]">→ Mixolidio ♭9/♭13 (cuando resuelve a menor)</span>
+            <span class="text-xs text-[var(--accent2)] ml-auto">▶</span>
           </div>
-          <div class="flex gap-3 items-center">
+          <div class="flex gap-3 items-center cursor-pointer scale-row" onclick="playScale('altered','Eb4')" title="Click para reproducir escala">
             <span class="chord-pill">E♭7</span>
             <span class="text-[var(--muted)]">→ Alterada (máxima tensión)</span>
+            <span class="text-xs text-[var(--accent2)] ml-auto">▶</span>
           </div>
-          <div class="flex gap-3 items-center">
+          <div class="flex gap-3 items-center cursor-pointer scale-row" onclick="playScale('lydianDom','Eb4')" title="Click para reproducir escala">
             <span class="chord-pill">E♭7</span>
             <span class="text-[var(--muted)]">→ Lidio ♭7 (sustituto tritono funcional)</span>
+            <span class="text-xs text-[var(--accent2)] ml-auto">▶</span>
           </div>
         </div>
 
@@ -691,9 +695,9 @@
 <section id="analysis" class="section hidden-section">
   <div class="mb-4 flex gap-2 flex-wrap items-center">
     <input class="styled flex-1 min-w-[200px]" placeholder="🔍 Busca una canción o pega un link de YouTube / Spotify..." value="Autumn Leaves — Joseph Kosma">
-    <button class="btn btn-primary">🔎 Analizar</button>
-    <button class="btn btn-ghost">📎 Subir partitura (PDF / MusicXML)</button>
-    <button class="btn btn-ghost">🎙️ Separar stems</button>
+    <button class="btn btn-primary" onclick="showToast('🔍 Análisis disponible en versión completa. Hoy puedes explorar los standards incluidos.')">🔎 Analizar</button>
+    <button class="btn btn-ghost" onclick="showToast('📎 Subir partitura disponible en Pro. Hoy puedes analizar los standards incluidos.')">📎 Subir partitura (PDF / MusicXML)</button>
+    <button class="btn btn-ghost" onclick="showToast('🎙️ Separación de stems disponible en Pro+.')">🎙️ Separar stems</button>
   </div>
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -707,8 +711,8 @@
             <div class="text-sm text-[var(--muted)]">Joseph Kosma / Jacques Prévert · Tono original: Sol menor</div>
           </div>
           <div class="flex gap-2">
-            <button class="btn btn-ghost">♡</button>
-            <button class="btn btn-ghost">📑</button>
+            <button class="btn btn-ghost" onclick="this.textContent=this.textContent==='♡'?'♥':'♡';showToast(this.textContent==='♥'?'Añadida a favoritos':'Quitada de favoritos')">♡</button>
+            <button class="btn btn-ghost" onclick="showToast('📑 Lead sheet disponible en versión Pro')">📑</button>
           </div>
         </div>
 
@@ -774,22 +778,22 @@
         <div class="space-y-2">
           <div class="flex items-center gap-2 p-2 rounded-lg" style="background:var(--bg2)">
             <span>🎤</span><span class="text-sm flex-1">Voz</span>
-            <button class="btn btn-ghost py-1">🔊</button>
+            <button class="btn btn-ghost py-1" onclick="toggleStemBtn(this)">🔊</button>
           </div>
           <div class="flex items-center gap-2 p-2 rounded-lg" style="background:var(--bg2)">
             <span>🎹</span><span class="text-sm flex-1">Piano</span>
-            <button class="btn btn-ghost py-1">🔊</button>
+            <button class="btn btn-ghost py-1" onclick="toggleStemBtn(this)">🔊</button>
           </div>
           <div class="flex items-center gap-2 p-2 rounded-lg" style="background:var(--bg2)">
             <span>🎸</span><span class="text-sm flex-1">Bajo</span>
-            <button class="btn btn-ghost py-1">🔇</button>
+            <button class="btn btn-ghost py-1" onclick="toggleStemBtn(this)">🔇</button>
           </div>
           <div class="flex items-center gap-2 p-2 rounded-lg" style="background:var(--bg2)">
             <span>🥁</span><span class="text-sm flex-1">Batería</span>
-            <button class="btn btn-ghost py-1">🔊</button>
+            <button class="btn btn-ghost py-1" onclick="toggleStemBtn(this)">🔊</button>
           </div>
         </div>
-        <button class="btn btn-primary w-full mt-3">🎧 Practicar como bajista</button>
+        <button class="btn btn-primary w-full mt-3" onclick="showToast('🎧 Modo práctica con stems separados — disponible en Pro+')">🎧 Practicar como bajista</button>
       </div>
 
       <div class="card p-5">
@@ -800,21 +804,21 @@
               <div class="font-bold">Bill Evans Trio</div>
               <div class="text-xs text-[var(--muted)]">Portrait in Jazz · 1960</div>
             </div>
-            <button class="btn btn-ghost py-1">→</button>
+            <button class="btn btn-ghost py-1" onclick="showToast('🎵 Enlace a grabación — disponible en Pro')">→</button>
           </div>
           <div class="flex items-center justify-between p-2 rounded" style="background:var(--bg2)">
             <div>
               <div class="font-bold">Cannonball Adderley</div>
               <div class="text-xs text-[var(--muted)]">Somethin' Else · 1958</div>
             </div>
-            <button class="btn btn-ghost py-1">→</button>
+            <button class="btn btn-ghost py-1" onclick="showToast('🎵 Enlace a grabación — disponible en Pro')">→</button>
           </div>
           <div class="flex items-center justify-between p-2 rounded" style="background:var(--bg2)">
             <div>
               <div class="font-bold">Chet Baker</div>
               <div class="text-xs text-[var(--muted)]">In Paris · 1955</div>
             </div>
-            <button class="btn btn-ghost py-1">→</button>
+            <button class="btn btn-ghost py-1" onclick="showToast('🎵 Enlace a grabación — disponible en Pro')">→</button>
           </div>
         </div>
       </div>
@@ -822,10 +826,10 @@
       <div class="card p-5">
         <h3 class="font-bold mb-3">🎯 Ejercicios propuestos</h3>
         <div class="space-y-2 text-sm">
-          <div class="p-2 rounded cursor-pointer hover:bg-[var(--bg2)]">✍️ Transcribe la melodía del A1</div>
-          <div class="p-2 rounded cursor-pointer hover:bg-[var(--bg2)]">🎹 Toca los voicings drop-2</div>
-          <div class="p-2 rounded cursor-pointer hover:bg-[var(--bg2)]">👂 Dictado armónico de los 8 compases</div>
-          <div class="p-2 rounded cursor-pointer hover:bg-[var(--bg2)]">🎨 Compone una reharm tuya</div>
+          <div class="p-2 rounded cursor-pointer hover:bg-[var(--bg2)]" onclick="route('lesson');showToast('✍️ Ejercicio: Transcribe la melodía del A1')">✍️ Transcribe la melodía del A1</div>
+          <div class="p-2 rounded cursor-pointer hover:bg-[var(--bg2)]" onclick="route('lesson');showToast('🎹 Ejercicio: Toca los voicings drop-2')">🎹 Toca los voicings drop-2</div>
+          <div class="p-2 rounded cursor-pointer hover:bg-[var(--bg2)]" onclick="route('ear');showToast('👂 Ejercicio: Dictado armónico de los 8 compases')">👂 Dictado armónico de los 8 compases</div>
+          <div class="p-2 rounded cursor-pointer hover:bg-[var(--bg2)]" onclick="route('tutor');setTimeout(()=>{document.getElementById('tutorInput').value='Quiero componer una reharmonización de Autumn Leaves A1';tutorSend()},300)">🎨 Compone una reharm tuya</div>
         </div>
       </div>
     </div>
@@ -845,11 +849,11 @@
     <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
       <h3 class="font-bold">Tu árbol de habilidades</h3>
       <div class="flex gap-2 text-sm">
-        <button class="tab active" data-domain="all">Todos</button>
-        <button class="tab" data-domain="tonal">Tonal</button>
-        <button class="tab" data-domain="jazz">Jazz</button>
-        <button class="tab" data-domain="arranging">Arreglos</button>
-        <button class="tab" data-domain="ear">Oído</button>
+        <button class="tab active" data-domain="all" onclick="filterMastery('all')">Todos</button>
+        <button class="tab" data-domain="tonal" onclick="filterMastery('tonal')">Tonal</button>
+        <button class="tab" data-domain="jazz" onclick="filterMastery('jazz')">Jazz</button>
+        <button class="tab" data-domain="arranging" onclick="filterMastery('arranging')">Arreglos</button>
+        <button class="tab" data-domain="ear" onclick="filterMastery('ear')">Oído</button>
       </div>
     </div>
 
@@ -872,9 +876,9 @@
         </div>
       </div>
       <div class="mt-3 flex gap-2 flex-wrap">
-        <button class="btn btn-primary">🎯 Practicar ahora</button>
-        <button class="btn btn-ghost">📚 Ver lección</button>
-        <button class="btn btn-ghost">🤖 Preguntar al tutor</button>
+        <button class="btn btn-primary" onclick="route('lesson')">🎯 Practicar ahora</button>
+        <button class="btn btn-ghost" onclick="route('lesson')">📚 Ver lección</button>
+        <button class="btn btn-ghost" onclick="route('tutor');setTimeout(()=>{const n=document.getElementById('skillName')?.textContent||'este tema';document.getElementById('tutorInput').value='Quiero practicar '+n;tutorSend()},300)">🤖 Preguntar al tutor</button>
       </div>
     </div>
   </div>
@@ -884,8 +888,8 @@
 <section id="library" class="section hidden-section">
   <div class="mb-4 flex gap-2 flex-wrap items-center">
     <input class="styled flex-1 min-w-[200px]" placeholder="🔍 Buscar canción, autor, estilo, grado...">
-    <select class="styled"><option>Todas las dificultades</option><option>Principiante</option><option>Intermedio</option><option>Avanzado</option></select>
-    <select class="styled"><option>Todos los estilos</option><option>Jazz</option><option>Clásico</option><option>Pop</option><option>Latino</option><option>Cine</option></select>
+    <select class="styled" id="libLevelFilter" onchange="renderLibrary()"><option value="">Todas las dificultades</option><option value="Principiante">Principiante</option><option value="Intermedio">Intermedio</option><option value="Avanzado">Avanzado</option></select>
+    <select class="styled" id="libStyleFilter" onchange="renderLibrary()"><option value="">Todos los estilos</option><option value="Jazz">Jazz</option><option value="Clásico">Clásico</option><option value="Pop">Pop</option><option value="Latino">Latino</option><option value="Cine">Cine</option></select>
   </div>
 
   <div id="songLibrary" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
@@ -909,7 +913,7 @@
         <li>✓ 20 min / mes de tutor IA</li>
         <li>✓ Ear training básico</li>
       </ul>
-      <button class="btn btn-ghost w-full">Empezar</button>
+      <button class="btn btn-ghost w-full" onclick="showToast('✅ ¡Ya estás en el plan Free! Explora el Nivel 1 completo.')">Empezar</button>
     </div>
 
     <div class="card p-6 relative" style="border-color:var(--brand2);box-shadow:0 10px 40px rgba(46,92,138,.35)">
@@ -925,7 +929,7 @@
         <li>✓ Mapa de maestría completo</li>
         <li>✓ Descarga offline</li>
       </ul>
-      <button class="btn btn-primary w-full">Empezar Pro</button>
+      <button class="btn btn-primary w-full" onclick="showToast('💳 Checkout Pro — próximamente. Estás en trial gratuito.')">Empezar Pro</button>
     </div>
 
     <div class="card p-6" style="border-color:var(--accent)">
@@ -939,7 +943,7 @@
         <li>✓ Acceso beta a features nuevos</li>
         <li>✓ Plugin DAW (Ableton / Logic)</li>
       </ul>
-      <button class="btn btn-accent w-full">Empezar Pro+</button>
+      <button class="btn btn-accent w-full" onclick="showToast('💳 Checkout Pro+ — próximamente. Estás en trial gratuito.')">Empezar Pro+</button>
     </div>
 
     <div class="card p-6">
@@ -953,7 +957,7 @@
         <li>✓ SSO (SAML, Google)</li>
         <li>✓ Soporte dedicado</li>
       </ul>
-      <button class="btn btn-ghost w-full">Hablar con ventas</button>
+      <button class="btn btn-ghost w-full" onclick="showToast('📧 Escríbenos a contacto@armonia.app para licencias institucionales')">Hablar con ventas</button>
     </div>
   </div>
 
@@ -991,7 +995,7 @@
         <span class="chip chip-accent">Nivel 2</span>
         <span class="chip chip-ok">Streak 14d</span>
       </div>
-      <button class="btn btn-ghost w-full">✏️ Editar perfil</button>
+      <button class="btn btn-ghost w-full" onclick="showToast('✏️ Edición de perfil — próximamente')">✏️ Editar perfil</button>
     </div>
 
     <div class="lg:col-span-2 space-y-5">
@@ -1010,23 +1014,23 @@
           </div>
           <div>
             <label class="text-xs text-[var(--muted)] block mb-1">Instrumento principal</label>
-            <select class="styled w-full"><option>Guitarra</option><option>Piano</option><option>Saxo</option><option>Voz</option><option>Otro</option></select>
+            <select class="styled w-full" onchange="showToast('Instrumento: '+this.value)"><option>Guitarra</option><option>Piano</option><option>Saxo</option><option>Voz</option><option>Otro</option></select>
           </div>
           <div>
             <label class="text-xs text-[var(--muted)] block mb-1">Idioma de contenido</label>
-            <select class="styled w-full"><option>Español</option><option>Inglés</option><option>Portugués</option><option>Francés</option><option>Italiano</option></select>
+            <select class="styled w-full" onchange="document.getElementById('langSelect').value={Español:'es',Inglés:'en',Portugués:'pt',Francés:'fr',Italiano:'it'}[this.value]||'es';applyI18n();showToast('Idioma: '+this.value)"><option>Español</option><option>Inglés</option><option>Portugués</option><option>Francés</option><option>Italiano</option></select>
           </div>
           <div>
             <label class="text-xs text-[var(--muted)] block mb-1">Objetivo diario</label>
-            <select class="styled w-full"><option>15 min</option><option selected>25 min</option><option>45 min</option><option>60 min</option></select>
+            <select class="styled w-full" onchange="showToast('Objetivo diario: '+this.value)"><option>15 min</option><option selected>25 min</option><option>45 min</option><option>60 min</option></select>
           </div>
           <div>
             <label class="text-xs text-[var(--muted)] block mb-1">Notación</label>
-            <select class="styled w-full"><option>Inglés (C D E)</option><option selected>Latina (Do Re Mi)</option></select>
+            <select class="styled w-full" onchange="showToast('Notación: '+this.value)"><option>Inglés (C D E)</option><option selected>Latina (Do Re Mi)</option></select>
           </div>
           <div>
             <label class="text-xs text-[var(--muted)] block mb-1">Solfeo</label>
-            <select class="styled w-full"><option>Fijo (Do = C)</option><option selected>Móvil (Do = tónica)</option></select>
+            <select class="styled w-full" onchange="showToast('Solfeo: '+this.value)"><option>Fijo (Do = C)</option><option selected>Móvil (Do = tónica)</option></select>
           </div>
         </div>
       </div>
@@ -2938,6 +2942,252 @@ if (location.hash) {
 applyI18n();
 renderCurriculum();
 buildPiano();
+
+// ============ TOAST SYSTEM ============
+function showToast(msg, duration=3500){
+  const t = document.createElement('div');
+  t.className = 'glass fixed bottom-6 right-6 p-4 rounded-xl max-w-sm z-50';
+  t.style.borderLeft = '4px solid var(--accent)';
+  t.innerHTML = `<div class="flex items-start gap-3"><div class="flex-1"><div class="text-sm">${msg}</div></div><button class="text-xs text-[var(--muted)]" onclick="this.closest('.glass').remove()">✕</button></div>`;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(), duration);
+}
+
+// ============ STEM TOGGLE ============
+function toggleStemBtn(btn){
+  const muted = btn.textContent.trim() === '🔇';
+  btn.textContent = muted ? '🔊' : '🔇';
+  const label = btn.parentElement.querySelector('.text-sm').textContent;
+  showToast(muted ? '🔊 '+label+' activado' : '🔇 '+label+' silenciado');
+}
+
+// ============ LIBRARY FILTER ============
+const _renderLibraryOrig = renderLibrary;
+renderLibrary = function(){
+  const lvlFilter = document.getElementById('libLevelFilter')?.value || '';
+  const stFilter = document.getElementById('libStyleFilter')?.value || '';
+  const search = document.querySelector('#library input.styled')?.value?.toLowerCase() || '';
+  let filtered = SONGS;
+  if(lvlFilter) filtered = filtered.filter(s => s.lvl === lvlFilter);
+  if(stFilter) filtered = filtered.filter(s => s.st === stFilter);
+  if(search) filtered = filtered.filter(s => (s.t+s.a+s.st+s.tags.join(' ')).toLowerCase().includes(search));
+  document.getElementById('songLibrary').innerHTML = filtered.length === 0
+    ? '<div class="text-center text-[var(--muted)] p-8 col-span-3">No se encontraron canciones con esos filtros.</div>'
+    : filtered.map(s=>`
+    <div class="card card-hover p-0 cursor-pointer overflow-hidden" onclick="route('analysis')">
+      <div style="height:110px;background:linear-gradient(135deg,${s.cover} 0%,var(--bg3) 120%);display:flex;align-items:center;justify-content:center;font-size:2.5rem">🎵</div>
+      <div class="p-4">
+        <div class="flex items-center gap-2 mb-1"><span class="chip">${s.st}</span><span class="chip chip-accent">${s.lvl}</span></div>
+        <h4 class="font-bold">${s.t}</h4>
+        <div class="text-xs text-[var(--muted)] mb-2">${s.a}</div>
+        <div class="flex gap-1 flex-wrap">${s.tags.map(t=>`<span class="text-[10px] text-[var(--muted)] border border-[var(--line)] rounded px-1 py-0.5">${t}</span>`).join("")}</div>
+      </div>
+    </div>
+  `).join("");
+};
+// Also add search input handler for library
+document.addEventListener('input', e=>{
+  if(e.target.matches('#library input.styled')) renderLibrary();
+});
+
+// ============ MASTERY FILTER ============
+let _masteryFilter = 'all';
+function filterMastery(domain){
+  _masteryFilter = domain;
+  renderMasteryTree();
+}
+const _renderMasteryOrig = renderMasteryTree;
+renderMasteryTree = function(){
+  const svg=document.getElementById('skillTree');
+  svg.innerHTML="";
+  const domainMap = { tonal:'Tonal', jazz:'Jazz', arranging:'Arreglos', ear:'Oído' };
+  const filteredSkills = _masteryFilter === 'all' ? SKILLS : SKILLS.filter(s => {
+    const mapped = domainMap[_masteryFilter] || _masteryFilter;
+    return s.domain === mapped;
+  });
+  const filteredIds = new Set(filteredSkills.map(s=>s.id));
+  // edges — only if both ends visible
+  EDGES.forEach(([a,b])=>{
+    if(!filteredIds.has(a) || !filteredIds.has(b)) return;
+    const sa=SKILLS.find(s=>s.id===a),sb=SKILLS.find(s=>s.id===b);
+    if(!sa||!sb)return;
+    const path=document.createElementNS("http://www.w3.org/2000/svg","path");
+    const midX=(sa.x+sb.x)/2;
+    path.setAttribute("d",`M ${sa.x+30} ${sa.y} C ${midX} ${sa.y}, ${midX} ${sb.y}, ${sb.x-30} ${sb.y}`);
+    path.setAttribute("class","skill-edge");
+    svg.appendChild(path);
+  });
+  filteredSkills.forEach(s=>{
+    const g=document.createElementNS("http://www.w3.org/2000/svg","g");
+    g.style.cursor="pointer";
+    g.addEventListener("click",()=>selectSkill(s));
+    const circle=document.createElementNS("http://www.w3.org/2000/svg","circle");
+    circle.setAttribute("cx",s.x);circle.setAttribute("cy",s.y);circle.setAttribute("r",24);
+    let cls="skill-node";
+    if(s.locked)cls+=" locked";
+    else if(s.mastery>=85)cls+=" mastered";
+    else if(s.mastery>=20)cls+=" learning";
+    circle.setAttribute("class",cls);
+    g.appendChild(circle);
+    const text=document.createElementNS("http://www.w3.org/2000/svg","text");
+    text.setAttribute("x",s.x);text.setAttribute("y",s.y+4);
+    text.setAttribute("text-anchor","middle");text.setAttribute("fill","#E7ECF5");text.setAttribute("font-size","10");text.setAttribute("font-weight","700");
+    text.textContent=s.mastery>0?s.mastery+"%":"—";
+    g.appendChild(text);
+    const lbl=document.createElementNS("http://www.w3.org/2000/svg","text");
+    lbl.setAttribute("x",s.x);lbl.setAttribute("y",s.y+42);
+    lbl.setAttribute("text-anchor","middle");lbl.setAttribute("fill","#8B97B2");lbl.setAttribute("font-size","10");
+    lbl.textContent=s.name.length>16?s.name.slice(0,15)+"…":s.name;
+    g.appendChild(lbl);
+    svg.appendChild(g);
+  });
+};
+
+// ============ SCALE PLAYER — synchronized with tempo/loop/rhythm ============
+const SCALE_DEFS = {
+  mixolydian:       [0, 2, 4, 5, 7, 9, 10, 12],         // 1 2 3 4 5 6 b7 8
+  mixolydianB9B13:  [0, 1, 4, 5, 7, 8, 10, 12],          // 1 b2 3 4 5 b6 b7 8
+  altered:          [0, 1, 3, 4, 6, 8, 10, 12],           // 1 b2 #2 3 #4 b6 b7 8
+  lydianDom:        [0, 2, 4, 6, 7, 9, 10, 12],           // 1 2 3 #4 5 6 b7 8
+  dorian:           [0, 2, 3, 5, 7, 9, 10, 12],
+  aeolian:          [0, 2, 3, 5, 7, 8, 10, 12],
+  ionian:           [0, 2, 4, 5, 7, 9, 11, 12],
+  locrian:          [0, 1, 3, 5, 6, 8, 10, 12],
+};
+
+async function playScale(scaleType, rootNote){
+  await ensureAudio();
+  const intervals = SCALE_DEFS[scaleType];
+  if(!intervals) return;
+  const rootMidi = noteNameToMidi(rootNote);
+  const notes = intervals.map(i => midiToName(rootMidi + i));
+
+  // Sync with current tempo if loop/backing is active
+  const slow = _loopState.slow;
+  const noteDur = slow ? 0.35 : 0.2;  // duration of each scale note
+  const noteGap = slow ? 0.4 : 0.22;  // time between notes
+
+  const t = Tone.now() + 0.05;
+  notes.forEach((n, i) => {
+    synth.triggerAttackRelease(n, noteDur, t + i * noteGap);
+  });
+
+  // Visual feedback on the clicked row
+  document.querySelectorAll('.scale-row').forEach(r => r.style.background = '');
+  event?.target?.closest?.('.scale-row')?.style && (event.target.closest('.scale-row').style.background = 'rgba(46,92,138,.25)');
+  setTimeout(()=> document.querySelectorAll('.scale-row').forEach(r => r.style.background = ''), notes.length * noteGap * 1000 + 200);
+}
+
+// ============ SYNCHRONIZED LOOP + BACKING ============
+// Rewrite to use a shared clock reference so loop and backing start together
+let _syncClock = { startTime: 0, bpm: 130 };
+
+function startSyncedLoopAndBacking(syms, slow){
+  // Stop any existing
+  if(_loopState.iid){ clearTimeout(_loopState.iid); _loopState.iid = null; }
+  if(_loopState.backingIid){ clearTimeout(_loopState.backingIid); _loopState.backingIid = null; }
+
+  const bpm = slow ? 75 : 130;
+  const beatSec = 60 / bpm;
+  _syncClock.startTime = Tone.now() + 0.05;
+  _syncClock.bpm = bpm;
+
+  // Start chord loop from _syncClock.startTime
+  _loopState.syms = syms;
+  _loopState.slow = slow;
+  _loopState.active = true;
+  updateLoopUI(true);
+
+  const beatDur = beatSec; // 1 beat per chord
+  const t0 = _syncClock.startTime;
+  // Play first cycle aligned to t0
+  syms.forEach((s, i) => {
+    const notes = parseChord(s);
+    if(notes) synth.triggerAttackRelease(notes, beatDur * 0.85, t0 + i * beatDur);
+  });
+  const cycleDurMs = syms.length * beatDur * 1000;
+  _loopState.iid = setTimeout(() => _playSyncedLoopCycle(), cycleDurMs);
+
+  // Start backing aligned to same t0
+  if(_loopState.backingActive){
+    ensureDrums();
+    const pat = DRUM_PATTERNS[getBackingStyle()];
+    const eighthBase = beatSec / 2;
+    let step = 0;
+    let nextTime = t0;
+
+    function tickBacking(){
+      if(!_loopState.backingActive) return;
+      const now = Tone.now();
+      // Schedule at nextTime
+      if(pat.kick[step])  _drumSynths.kick.triggerAttackRelease('C1', '8n', nextTime);
+      if(pat.snare[step]) _drumSynths.snare.triggerAttackRelease('16n', nextTime);
+      if(pat.hihat[step]) _drumSynths.hihat.triggerAttackRelease('32n', nextTime);
+      if(pat.ride[step])  _drumSynths.ride.triggerAttackRelease('8n', nextTime);
+      step = (step + 1) % pat.kick.length;
+      const nextIsOffbeat = step % 2 === 1;
+      const interval = nextIsOffbeat ? eighthBase * (pat.swingRatio * 2) : eighthBase * ((1 - pat.swingRatio) * 2);
+      nextTime += interval;
+      // Schedule next tick slightly before nextTime
+      const delay = Math.max(10, (nextTime - Tone.now()) * 1000 - 20);
+      _loopState.backingIid = setTimeout(tickBacking, delay);
+    }
+    tickBacking();
+  }
+}
+
+function _playSyncedLoopCycle(){
+  if(!_loopState.active) return;
+  const syms = _loopState.syms;
+  const slow = _loopState.slow;
+  const bpm = slow ? 75 : 130;
+  const beatDur = 60 / bpm;
+  const t = Tone.now() + 0.02;
+  syms.forEach((s,i)=>{
+    const notes = parseChord(s);
+    if(notes) synth.triggerAttackRelease(notes, beatDur * 0.85, t + i * beatDur);
+  });
+  const cycleDurMs = syms.length * beatDur * 1000;
+  _loopState.iid = setTimeout(() => _playSyncedLoopCycle(), cycleDurMs);
+}
+
+// Override toggleBacking to sync with loop when loop is active
+const _origToggleBacking = toggleBacking;
+toggleBacking = function(){
+  if(_loopState.backingActive){
+    _loopState.backingActive = false;
+    stopBacking();
+    return;
+  }
+  ensureAudio().then(() => {
+    _loopState.backingActive = true;
+    updateBackingUI(true);
+    if(_loopState.active && _loopState.syms){
+      // Restart both synced
+      startSyncedLoopAndBacking(_loopState.syms, _loopState.slow);
+    } else {
+      // Just start backing alone
+      startBacking();
+    }
+  });
+};
+
+// Override toggleLoop to sync with backing when backing is active
+const _origToggleLoop = toggleLoop;
+toggleLoop = function(symsJson, slow){
+  if(_loopState.active){ stopLoop(); return; }
+  let syms;
+  try{ syms = typeof symsJson === 'string' ? JSON.parse(symsJson) : symsJson; }catch(e){ return; }
+  ensureAudio().then(() => {
+    if(_loopState.backingActive){
+      // Start both synced from same point
+      _loopState.active = true;
+      startSyncedLoopAndBacking(syms, slow);
+    } else {
+      playProgression(syms, slow, true);
+    }
+  });
+};
 
 // Welcome toast
 setTimeout(()=>{
