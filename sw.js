@@ -1,63 +1,51 @@
 // ARMONÍA — Service Worker
-// Cache-first para los recursos del shell de la app, network-first para audio externo y otros fetches.
+// Network-first for same-origin, cache-first for CDN assets only.
 
-const CACHE = "armonia-v2.3-2026-04-18";  // ← bump cuando cambia algo importante
-const SHELL = [
-  "./index.html",
-  "./manifest.webmanifest",
-  "./icon-192.svg",
-  "./icon-512.svg",
-  "https://cdn.tailwindcss.com",
-  "https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"
-];
+const CACHE = "armonia-v2.3-2026-04-18b";  // ← bump cuando cambia algo importante
 
 self.addEventListener("install", (e) => {
-  self.skipWaiting();
-  e.waitUntil(
-    caches.open(CACHE).then((cache) =>
-      Promise.allSettled(SHELL.map((u) => cache.add(u).catch(() => {})))
-    )
-  );
+  self.skipWaiting(); // activate immediately
 });
 
 self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
-    ).then(() => self.clients.claim())
+    ).then(() => self.clients.claim()) // take over all clients immediately
   );
 });
 
 self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
-  // Solo GET
   if (e.request.method !== "GET") return;
 
-  // Navegación (páginas): network-first con fallback al shell
-  if (e.request.mode === "navigate") {
+  // CDN assets (Tailwind, Tone.js): cache-first (they don't change)
+  if (/tailwindcss|jsdelivr|cdnjs/.test(url.host)) {
     e.respondWith(
-      fetch(e.request).catch(() =>
-        caches.match("./index.html")
-      )
-    );
-    return;
-  }
-
-  // Cache-first para el resto
-  e.respondWith(
-    caches.match(e.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(e.request)
-        .then((resp) => {
-          // Cachear respuestas OK del mismo origen o CDNs conocidos
-          if (resp && resp.status === 200 && (url.origin === self.location.origin || /tailwindcss|jsdelivr/.test(url.host))) {
+      caches.match(e.request).then((cached) => {
+        if (cached) return cached;
+        return fetch(e.request).then((resp) => {
+          if (resp && resp.status === 200) {
             const copy = resp.clone();
             caches.open(CACHE).then((c) => c.put(e.request, copy));
           }
           return resp;
-        })
-        .catch(() => caches.match("./index.html"));
-    })
+        });
+      })
+    );
+    return;
+  }
+
+  // Everything else (our HTML, JS, SVG, manifest): NETWORK-FIRST
+  // This ensures updates are always picked up immediately
+  e.respondWith(
+    fetch(e.request).then((resp) => {
+      if (resp && resp.status === 200) {
+        const copy = resp.clone();
+        caches.open(CACHE).then((c) => c.put(e.request, copy));
+      }
+      return resp;
+    }).catch(() => caches.match(e.request))
   );
 });
 
